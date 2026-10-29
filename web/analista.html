@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analista de riesgos · Lab 06</title>
+<style>
+  :root { --c: #0a7d8c; --bg: #f4f6f8; --line: #d7dde3; --txt: #1d2329; --mut: #5d6873; --ok: #1b7f4b; --warn: #a86400; --bad: #b3261e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--txt); }
+  header { background: #3b1f12; color: #fff; padding: 14px 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  header b { color: #ffc98a; } header .sp { flex: 1; }
+  header input { padding: 6px 9px; border-radius: 6px; border: 0; font: inherit; width: 170px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; display: grid; gap: 18px; grid-template-columns: 300px 1fr; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  h2 { margin: 0 0 10px; font-size: 17px; }
+  .item { padding: 10px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px; cursor: pointer; }
+  .item:hover, .item.on { border-color: var(--c); background: #f0f9fa; }
+  .d { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+  .APROBAR { background: #dcf3e6; color: var(--ok); } .RECHAZAR { background: #fbe1df; color: var(--bad); } .OBSERVAR { background: #fff1d6; color: var(--warn); }
+  .meta { font-size: 12px; color: var(--mut); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; } td { border-bottom: 1px solid var(--line); padding: 5px 6px; } td:first-child { color: var(--mut); width: 45%; }
+  .hall { padding: 6px 10px; border-radius: 8px; margin: 5px 0; font-size: 13px; }
+  .hall.RECHAZAR { background: #fbe1df; } .hall.OBSERVAR { background: #fff1d6; }
+  .cita { border-left: 3px solid var(--c); padding: 4px 10px; margin: 8px 0; font-size: 13px; background: #f7fafb; }
+  textarea, input.n { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  .acciones { display: flex; gap: 10px; margin-top: 10px; }
+  button { border: 0; border-radius: 8px; padding: 10px 16px; font: inherit; font-weight: 600; cursor: pointer; color: #fff; }
+  .ap { background: var(--ok); } .re { background: var(--bad); } .sec { background: #e7eef2; color: var(--txt); }
+  .err { color: var(--bad); }
+  .conv { background: #f7f9fb; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; max-height: 260px; overflow-y: auto; font-size: 13px; margin: 6px 0 12px; }
+  .conv div { margin: 4px 0; } .conv .rol { font-weight: 700; color: var(--mut); text-transform: uppercase; font-size: 11px; margin-right: 6px; }
+  .sosp { background: #fbe1df; border-radius: 6px; padding: 2px 6px; } .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; } @media (max-width: 800px) { .grid2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>Lab 06 · <b>Analista de riesgos</b> — aprueba o rechaza. El dictamen del agente es solo una propuesta.
+  <span class="sp"></span>
+  <input id="analista" placeholder="Tu nombre" value="Analista 1">
+  <input id="token" type="password" placeholder="Token de analista">
+  <button class="sec" id="cargar">Cargar bandeja</button>
+</header>
+<main>
+  <section class="card"><h2>Pendientes <span id="n" class="meta"></span></h2><div id="lista" class="meta">Ingresa el token y carga la bandeja.</div></section>
+  <section class="card" id="detalle"><p class="meta">Selecciona una solicitud.</p></section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const pct = x => (Number(x) * 100).toFixed(1) + "%";
+const sol = (k, d) => { try { return sessionStorage.getItem(k) || d; } catch (e) { return d; } };
+const guardar = (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} };
+let cola = [], actual = null;
+$("token").value = sol("lab06-token", ""); $("analista").value = sol("lab06-analista", "Analista 1");
+
+async function api(url, opciones = {}) {
+  const r = await fetch(url, {...opciones, headers: {"Content-Type": "application/json", "X-Analista-Token": $("token").value, ...(opciones.headers || {})}});
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(`${r.status}: ${typeof d.detail === "string" ? d.detail : JSON.stringify(d.detail)}`);
+  return d;
+}
+
+async function cargar() {
+  guardar("lab06-token", $("token").value); guardar("lab06-analista", $("analista").value);
+  try { cola = await api("/api/cola"); } catch (e) { $("lista").innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  $("n").textContent = `(${cola.length})`;
+  $("lista").innerHTML = cola.length ? "" : "No hay solicitudes pendientes.";
+  cola.forEach(f => {
+    const div = document.createElement("div"); div.className = "item" + (actual === f.id ? " on" : "");
+    div.innerHTML = `<b>#${f.id}</b> ${esc(f.solicitud.nombre)} <span class="d ${f.resultado.dictamen}">${f.resultado.dictamen}</span><br><span class="meta">${esc(f.solicitud.producto)} · S/ ${Number(f.solicitud.monto).toLocaleString("es-PE")} · ${f.solicitud.plazo_meses} m</span>`;
+    div.onclick = () => { actual = f.id; mostrar(f); cargar(); };
+    $("lista").appendChild(div);
+  });
+  if (actual && !cola.some(f => f.id === actual)) { actual = null; $("detalle").innerHTML = '<p class="meta">Selecciona una solicitud.</p>'; }
+}
+
+function mostrar(f) {
+  const s = f.solicitud, r = f.resultado, c = r.calculos;
+  let h = `<h2>Solicitud #${f.id} · ${esc(s.nombre)} (DNI ${esc(s.dni)})</h2>`;
+  h += `<p>Dictamen del agente: <span class="d ${r.dictamen}">${r.dictamen}</span>`;
+  if (r.anulado_por_guarda) h += ` <span class="meta">— el LLM propuso ${esc(r.propuesta_llm)} y una guarda lo endureció</span>`;
+  if (r.llm_error) h += ` <span class="err">— LLM no disponible: ${esc(r.llm_error)}</span>`;
+  if (f.inyeccion_sospechosa) h += ` <span class="err">— ⚠ Jev marcó un mensaje de la conversación como posible intento de manipulación</span>`;
+  const conf = f.enrutamiento.confianza == null ? "" : ` · confianza ${Number(f.enrutamiento.confianza).toFixed(2)}`;
+  h += `</p><p class="meta">Router: ${esc(f.enrutamiento.proveedor)} ${esc(f.enrutamiento.modelo)}${conf}${f.enrutamiento.respaldo ? " · RESPALDO: " + esc(f.enrutamiento.respaldo) : ""} · LLM ${esc(r.llm_modelo)}</p>`;
+  h += `<div class="grid2"><div><table>
+    <tr><td>Producto</td><td>${esc(s.producto)}</td></tr><tr><td>Monto / plazo</td><td>S/ ${s.monto} · ${s.plazo_meses} meses</td></tr>
+    <tr><td>Ingreso / deuda mensual</td><td>S/ ${s.ingreso_mensual} / S/ ${s.deuda_mensual}</td></tr>
+    <tr><td>Edad · calificación SBS</td><td>${s.edad} · ${esc(s.calificacion_sbs)}</td></tr>
+    <tr><td>Trabajador · antigüedad</td><td>${esc(s.tipo_trabajador)} · ${s.antiguedad_meses} m</td></tr>
+    <tr><td>TEA · cuota</td><td>${pct(c.tea)} · S/ ${c.cuota}</td></tr>
+    <tr><td>Cuota/ingreso · endeudamiento</td><td>${pct(c.cuota_ingreso)} · ${pct(c.endeudamiento)}</td></tr>
+    <tr><td>Edad al vencimiento</td><td>${c.edad_al_vencimiento}</td></tr></table>
+    <p class="meta">Pregunta del asesor: “${esc(s.pregunta)}”</p></div><div>`;
+  h += `<b>Hallazgos de las guardas</b>` + (r.hallazgos.length ? r.hallazgos.map(x => `<div class="hall ${x.severidad}"><b>Art. ${esc(x.regla)} · ${x.severidad}</b> — ${esc(x.mensaje)}</div>`).join("") : `<p class="meta">Ninguno.</p>`);
+  h += `<p><b>Justificación del agente</b><br>${esc(r.justificacion)}</p>`;
+  if (r.condiciones.length) h += `<p><b>Condiciones</b></p><ul>${r.condiciones.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+  h += `</div></div>`;
+  if (f.conversacion && f.conversacion.length) {
+    h += `<b>Conversación del asesor que originó la solicitud</b><div class="conv">${f.conversacion.map(m =>
+      `<div class="${m.inyeccion_sospechosa ? "sosp" : ""}"><span class="rol">${esc(m.rol)}</span>${esc(m.texto)}</div>`).join("")}</div>`;
+  }
+  h += `<b>Reglas del manual (RAG)</b>`;
+  r.reglas.forEach(x => h += `<div class="cita"><b>Art. ${esc(x.id)} · ${esc(x.titulo)}</b> (pág. ${x.pagina}, score ${Number(x.score).toFixed(2)})${r.reglas_citadas.includes(x.id) ? " · <b>citada</b>" : ""}<br>${esc(x.texto)}</div>`);
+  h += `<label class="meta">Comentario (obligatorio si te apartas del dictamen del agente)</label><textarea id="com"></textarea>
+    <div class="acciones"><button class="ap" id="ap">Aprobar</button><button class="re" id="re">Rechazar</button></div><p id="msg"></p>`;
+  $("detalle").innerHTML = h;
+  $("ap").onclick = () => decidir(f.id, "APROBADA");
+  $("re").onclick = () => decidir(f.id, "RECHAZADA");
+}
+
+async function decidir(id, decision) {
+  try {
+    await api(`/api/solicitudes/${id}/decision`, {method: "POST", body: JSON.stringify({decision, analista: $("analista").value, comentario: $("com").value})});
+    $("detalle").innerHTML = `<p>Solicitud #${id}: <b>${decision}</b>. El asesor ya la ve en su pantalla.</p>`;
+    actual = null; cargar();
+  } catch (e) { $("msg").innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+}
+
+$("cargar").onclick = cargar;
+setInterval(() => { if ($("token").value && !actual) cargar(); }, 5000);   // refresca la bandeja si no estás revisando una
+</script>
+</body>
+</html>
