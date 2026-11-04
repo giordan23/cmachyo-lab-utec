@@ -25,6 +25,18 @@
       "¿Hasta qué monto decide un analista sin comité?"
     ]
   },
+  "consulta_benchmark": {
+    "descripcion": "Pregunta de comparación entre Banco A y Banco B a partir del benchmarking financiero del documento adjunto.",
+    "criterio": "The advisor asks for a comparison between Bank A and Bank B using the benchmarking document: passive and active operations, rates, commissions, deposits, withdrawals, or fees. This is a factual analysis, not a client risk decision.",
+    "ejemplos": [
+      "¿Qué diferencia hay entre el ahorro en soles del Banco A y el Banco B?",
+      "Compara el costo de la tarjeta de crédito entre Banco A y Banco B.",
+      "¿Cuál banco tiene mejores condiciones para un depósito a plazo?",
+      "Analiza la diferencia de costos de comisiones entre Banco A y Banco B.",
+      "¿Qué tan favorable es el Banco B frente al Banco A en ahorro programado?",
+      "Compara las tasas de crédito activo entre Banco A y Banco B."
+    ]
+  },
   "fuera_de_alcance": {
     "descripcion": "Cualquier cosa que no sea un producto de crédito ni una evaluación de riesgo.",
     "criterio": "Anything unrelated to credit products or credit risk evaluation: complaints, human resources, IT support, opening hours, weather, jokes or small talk.",

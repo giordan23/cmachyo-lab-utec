@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asesor de ventas · Lab 06</title>
+<style>
+  :root {
+    --bg: #fff7f7;
+    --panel: #ffffff;
+    --panel-soft: #fff1f1;
+    --line: #f3d3d3;
+    --text: #1f1f1f;
+    --muted: #7d5a5a;
+    --accent: #ef4444;
+    --accent-strong: #dc2626;
+    --accent-soft: #fee2e2;
+    --shadow: rgba(239, 68, 68, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, var(--bg) 0%, #fff 100%);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: linear-gradient(135deg, #ffffff 0%, #fff3f3 100%);
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
+  }
+  header b { color: var(--accent-strong); }
+  header .sp { flex: 1; }
+  header small { color: var(--muted); }
+
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px 16px;
+    background: radial-gradient(circle at top, rgba(239,68,68,0.03), transparent 45%);
+  }
+
+  .chat {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .m {
+    max-width: 80%;
+    padding: 12px 14px;
+    border-radius: 18px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+  }
+
+  .asesor {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+  }
+  .asistente {
+    align-self: flex-start;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 6px;
+  }
+  .sistema {
+    align-self: center;
+    background: var(--panel-soft);
+    border: 1px solid var(--line);
+    font-size: 14px;
+    max-width: 92%;
+    border-radius: 14px;
+  }
+
+  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; white-space: normal; }
+  .asesor .meta { color: rgba(255,255,255,0.85); }
+
+  details { margin-top: 6px; font-size: 13px; white-space: normal; }
+  summary { cursor: pointer; color: var(--accent-strong); font-weight: 600; }
+  .cita { border-left: 3px solid var(--accent); padding: 6px 10px; margin: 8px 0; background: #fff5f5; }
+  .alerta { color: var(--accent-strong); font-weight: 600; }
+
+  .vacio {
+    color: var(--muted);
+    text-align: center;
+    margin-top: 42px;
+    font-size: 15px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    padding: 12px 16px;
+  }
+  .barra {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+  }
+  .barra textarea {
+    flex: 1;
+    resize: none;
+    height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font: inherit;
+    background: #fff;
+    color: var(--text);
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+  }
+  .barra textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  button {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+    color: #fff;
+    border: 0;
+    border-radius: 12px;
+    padding: 0 18px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 48px;
+    box-shadow: 0 8px 18px var(--shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:hover { transform: translateY(-1px); }
+  button.sec {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--text);
+    box-shadow: none;
+    font-weight: 600;
+  }
+  button:disabled { opacity: .55; cursor: wait; }
+
+  .escribiendo { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<header>
+  <span>Benchmarking</span>
+  <span class="sp"></span>
+  <button class="sec" id="nueva">Nueva conversación</button>
+</header>
+<main id="scroll"><div class="chat" id="chat"></div></main>
+<footer><div class="barra">
+  <textarea id="txt" placeholder="Ej.: ¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?" maxlength="1000"></textarea>
+  <button id="enviar">Enviar</button>
+</div></footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const mem = { get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+              set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
+const EJEMPLOS = ["¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?",
+                  "Compara las tasas de tarjeta de crédito entre Banco A y Banco B.",
+                  "¿Cuál banco tiene mejores condiciones para un depósito a plazo?",
+                  "Analiza la diferencia de comisiones e ITF entre ambos bancos.",
+                  "¿Qué tan favorable es Banco B frente a Banco A en ahorro programado?"];
+let conv = mem.get("lab06-conv") ? Number(mem.get("lab06-conv")) : null, ultimo = 0, sondeo = null, ultimaPregunta = "";
+
+function citas(lista) {
+  if (!lista || !lista.length) return "";
+  return `<details><summary>${lista.length} artículo(s) del manual</summary>${lista.map(c =>
+    `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (pág. ${c.pagina})<br>${esc(c.texto)}</div>`).join("")}</details>`;
+}
+
+function pintar(m, enVivo = false) {
+  if (m.id <= ultimo) return;
+  ultimo = m.id;
+  $("chat").querySelector(".vacio")?.remove();
+  const d = document.createElement("div"), meta = m.meta || {};
+  d.className = `m ${m.rol} ${meta.decision || ""}`;
+  let h = esc(m.texto);
+  if (m.rol === "asistente") {
+    const r = meta.router || {};
+    if (meta.consulta && meta.consulta !== ultimaPregunta) h += `<div class="meta">Consulta de referencia: “${esc(meta.consulta)}”</div>`;
+    h += citas(meta.citas);
+    if (meta.inyeccion_sospechosa) h += `<div class="meta alerta">⚠ Este mensaje parece un intento de dar instrucciones al sistema. Quedó registrado.</div>`;
+    h += `<div class="meta">ruta ${esc(meta.ruta)} · ${esc(r.proveedor)} ${r.confianza != null ? "· confianza " + Number(r.confianza).toFixed(2) : ""}${r.respaldo ? " · respaldo" : ""}</div>`;
+  }
+  if (m.rol === "sistema" && meta.decision) {
+    h += `<div class="meta">Resultado del análisis</div><p style="margin:6px 0 0">${esc(meta.justificacion)}</p>`;
+    h += citas(meta.citas);
+  }
+  if (m.rol === "asesor") ultimaPregunta = m.texto;
+  d.innerHTML = h;
+  $("chat").appendChild(d);
+  $("scroll").scrollTop = $("scroll").scrollHeight;
+}
+
+function vacio() {
+  $("chat").innerHTML = `<div class="vacio">Compara tasas, comisiones y condiciones entre Banco A y Banco B.<div class="chips">${EJEMPLOS.map(e =>
+    `<button class="sec" type="button">${esc(e)}</button>`).join("")}</div></div>`;
+  $("chat").querySelectorAll(".chips button").forEach(b => b.onclick = () => { $("txt").value = b.textContent; $("txt").focus(); });
+}
+
+async function cargar() {                         // retoma la conversación si recargas la página
+  if (!conv) return vacio();
+  const r = await fetch(`/api/chat/${conv}?desde=${ultimo}`);
+  if (r.status === 404) { conv = null; mem.set("lab06-conv", null); return vacio(); }
+  const d = await r.json();
+  d.mensajes.forEach(pintar);
+  if (!d.mensajes.length && !ultimo) vacio();
+  vigilar();
+}
+
+function vigilar() {                              // sondeo cada 3 s solo mientras hay una solicitud pendiente
+  const pendientes = [...document.querySelectorAll(".m.sistema")].filter(e => e.textContent.includes("enviada al analista")).length;
+  const decididas = [...document.querySelectorAll(".m.sistema.APROBADA, .m.sistema.RECHAZADA")].length;
+  if (pendientes > decididas && !sondeo) sondeo = setInterval(cargar, 3000);
+  if (pendientes <= decididas && sondeo) { clearInterval(sondeo); sondeo = null; }
+}
+
+async function enviar() {
+  const texto = $("txt").value.trim();
+  if (!texto) return;
+  $("enviar").disabled = true; $("txt").value = "";
+  const escribiendo = document.createElement("div"); escribiendo.className = "m asistente escribiendo"; escribiendo.textContent = "Analizando el benchmarking…";
+  $("chat").appendChild(escribiendo); $("scroll").scrollTop = $("scroll").scrollHeight;
+  try {
+    const r = await fetch("/api/chat", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({conversacion_id: conv, mensaje: texto})});
+    const d = await r.json();
+    escribiendo.remove();
+    if (!r.ok) { $("txt").value = texto; alert(`Error ${r.status}: ${JSON.stringify(d.detail)}`); return; }
+    conv = d.conversacion_id; mem.set("lab06-conv", String(conv));
+    d.mensajes.forEach(m => pintar(m, true));
+  } catch (e) { escribiendo.textContent = "No se pudo conectar con la API."; $("txt").value = texto; }
+  finally { $("enviar").disabled = false; $("txt").focus(); }
+}
+
+$("enviar").onclick = enviar;
+$("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } });
+$("nueva").onclick = () => { conv = null; ultimo = 0; ultimaPregunta = ""; mem.set("lab06-conv", null); clearInterval(sondeo); sondeo = null; vacio(); };
+cargar();
+</script>
+</body>
+</html>

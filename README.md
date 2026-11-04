@@ -50,6 +50,22 @@ docs/       ANALISIS_PROFUNDO.md, ANALISIS_WINDOWS.md, specs/ y plans/
 _guide/     fuentes de la guía: parts/*.html → capture.py → build.py
 ```
 
+## Consultas de benchmarking y comparación Banco A vs Banco B
+
+Además de la lógica de riesgo crediticio, el proyecto puede responder preguntas sobre el documento `data/Benchmarking.pdf` y comparar 
+las condiciones reales de Banco A frente a Banco B.
+
+Ejemplos:
+
+```text
+¿En qué difiere el ahorro en soles entre Banco A y Banco B?
+Compara la tasa de tarjeta de crédito de Banco A vs Banco B.
+¿Banco A o Banco B tiene mejores condiciones para depósitos a plazo?
+Analiza el impacto de comisiones e ITF entre ambos bancos.
+```
+
+La consulta pasa por el mismo RAG y por el mismo flujo de chat, pero la respuesta se fundamenta en el documento de benchmarking y no en una evaluación de crédito.
+
 ## Estado de verificación
 
 | Pieza | Estado |

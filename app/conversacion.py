@@ -21,11 +21,10 @@ from app.modelos import Solicitud
 from rules import politicas
 
 HISTORIAL_MAX = 6          # mensajes previos que recibe el LLM: más contexto = más costo y más ruido
-PEDIR_DATOS = ("Para evaluar a un cliente concreto necesito sus datos. Completa el formulario de abajo y envío la "
-               "solicitud al analista de riesgos; te aviso aquí cuando decida.")
-DERIVAR = ("Esta consulta no corresponde a productos de crédito ni a evaluación de riesgo. Derívala al área "
-           "correspondiente (agencia, RR. HH., soporte o atención al cliente).")
-SUGERIR = " Si es sobre un cliente concreto, puedes escalarlo al analista de riesgos con el botón."
+BENCHMARK_SOLO = ("Este proyecto está orientado a benchmarking y comparación entre Banco A y Banco B. "
+                  "No incluye evaluación de riesgo de clientes ni escalado a un analista de riesgo.")
+DERIVAR = ("Esta consulta no corresponde a benchmarking ni a comparación entre Banco A y Banco B. "
+           "Puedes preguntar sobre tasas, comisiones, ITF, depósitos o diferencias entre ambos bancos.")
 
 
 class Chat:
@@ -57,15 +56,13 @@ class Chat:
             metricas.INYECCION.inc()
         meta = {"ruta": ruta.ruta, "router": ruta.como_dict(), "inyeccion_sospechosa": sospechoso, "accion": None}
 
-        if ruta.ruta == "consulta_producto":
+        if ruta.ruta in {"consulta_producto", "consulta_benchmark"}:
             r = self.agente.responder_consulta(texto, previos)
             meta.update(consulta=r["consulta"], llm_error=r["llm_error"],
                         citas=[x for x in r["reglas"] if x["id"] in r["reglas_citadas"]])
             respuesta = r["respuesta"]
-            if not r["reglas"]:                          # el manual no lo cubre: quizá necesita al analista
-                meta["accion"], respuesta = "sugerir_escalar", respuesta + SUGERIR
         elif ruta.ruta == "evaluacion_credito":
-            meta["accion"], respuesta = "formulario", PEDIR_DATOS
+            respuesta = BENCHMARK_SOLO
         else:
             respuesta = DERIVAR
         return {"conversacion_id": conversacion_id,

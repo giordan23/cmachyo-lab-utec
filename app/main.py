@@ -22,6 +22,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Literal
 
+import numpy as np
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, RedirectResponse, Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -31,7 +32,7 @@ from app.agente_riesgo import AgenteRiesgo
 from app.config import WEB_DIR, Settings
 from app.conversacion import Chat
 from app.db import NoExiste, Repositorio, YaDecidida
-from app.embeddings import crear_embedder
+from app.embeddings import HashEmbedder, OpenAIEmbedder, crear_embedder
 from app.llm import crear_llm
 from app.modelos import Decision, MensajeChat, Solicitud
 from app.rag import RAG
@@ -55,10 +56,27 @@ class Servicios:
             self.chat = Chat(self.router, self.agente, self.repo, self.settings.inyeccion_umbral)
 
 
+def _embedder_compatible(settings: Settings, preferido):
+    if not settings.indice_path.exists():
+        return preferido
+    try:
+        with np.load(settings.indice_path) as z:
+            nombre = str(z["embedder"])
+    except Exception:
+        return preferido
+    if nombre == preferido.nombre:
+        return preferido
+    if nombre.startswith("hash-"):
+        return HashEmbedder(dim=int(nombre.split("-")[-1]))
+    if nombre.startswith("openai-") and settings.openai_api_key:
+        return OpenAIEmbedder(settings)
+    return preferido
+
+
 def construir_servicios(settings: Settings | None = None) -> Servicios:
     settings = settings or Settings()
     settings.validar()
-    embedder = crear_embedder(settings)
+    embedder = _embedder_compatible(settings, crear_embedder(settings))
     rag = RAG(settings.indice_path, embedder, settings.rag_min_score, settings.rag_top_k)
     return Servicios(settings, crear_router(settings, embedder), AgenteRiesgo(rag, crear_llm(settings)),
                      Repositorio(settings.db_path))
@@ -112,16 +130,8 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
             raise HTTPException(401, "Token de analista inválido")
 
     @app.get("/", include_in_schema=False)
-    def raiz():
-        return RedirectResponse("/asesor")
-
-    @app.get("/asesor", include_in_schema=False)
     def pagina_asesor():
-        return FileResponse(WEB_DIR / "asesor.html")
-
-    @app.get("/analista", include_in_schema=False)
-    def pagina_analista():
-        return FileResponse(WEB_DIR / "analista.html")
+        return FileResponse(WEB_DIR / "index.html")
 
     @app.get("/health")
     def health():
@@ -138,8 +148,8 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
             metricas.INYECCION.inc()
         metricas.SOLICITUDES.labels(ruta.ruta).inc()
         if ruta.ruta == "evaluacion_credito":
-            estado, resultado = "PENDIENTE_ANALISTA", s.agente.evaluar(sol)
-        elif ruta.ruta == "consulta_producto":
+            estado, resultado = "RESPONDIDA", {"respuesta": "Este proyecto está orientado a benchmarking y comparación de Banco A vs Banco B. No incluye evaluación de riesgo ni escalado a analista."}
+        elif ruta.ruta in {"consulta_producto", "consulta_benchmark"}:
             estado, resultado = "RESPONDIDA", s.agente.responder_consulta(sol.pregunta)
         else:
             estado, resultado = "DERIVADA", {"respuesta": MENSAJE_DERIVACION}
@@ -174,9 +184,12 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
     @app.post("/api/chat/{id_}/evaluacion")
     def chat_escalar(id_: int, sol: Solicitud, origen: Literal["router", "boton"] = "boton", s: Servicios = Depends(svc)):
         try:
-            return s.chat.escalar(id_, sol, origen)
+            if not s.repo.existe_conversacion(id_):
+                raise NoExiste
         except NoExiste:
             raise HTTPException(404, f"No existe la conversación {id_}") from None
+        return {"conversacion_id": id_, "solicitud_id": None,
+                "mensajes": [{"rol": "sistema", "texto": "Este proyecto está orientado a benchmarking. No se usa escalado a analista de riesgo."}]}
 
     @app.get("/api/cola", dependencies=[Depends(solo_analista)])
     def cola(s: Servicios = Depends(svc)):
