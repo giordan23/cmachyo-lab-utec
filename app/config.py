@@ -74,7 +74,8 @@ class Settings:
         # --- RAG -----------------------------------------------------------------------------------------------
         self.rag_top_k = int(_num("RAG_TOP_K", 4))
         self.rag_min_score = _num("RAG_MIN_SCORE", 0.25)
-        self.pdf_path = Path(_txt("PDF_PATH") or DATA_DIR / "politicas_riesgo.pdf")
+        ## CAMBIAR PDF
+        self.pdf_path = Path(_txt("PDF_PATH") or DATA_DIR / "Benchmarking.pdf")
         self.indice_path = Path(_txt("INDICE_PATH") or DATA_DIR / "indice.npz")
 
         # --- aplicación ----------------------------------------------------------------------------------------
