@@ -251,14 +251,63 @@ async function enviar() {
   const escribiendo = document.createElement("div"); escribiendo.className = "m asistente escribiendo"; escribiendo.textContent = "Analizando el benchmarking…";
   $("chat").appendChild(escribiendo); $("scroll").scrollTop = $("scroll").scrollHeight;
   try {
-    const r = await fetch("/api/chat", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({conversacion_id: conv, mensaje: texto})});
-    const d = await r.json();
+    const r = await fetch("/api/chat/stream", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({conversacion_id: conv, mensaje: texto})});
+    if (!r.ok) {
+      const d = await r.json().catch(() => ({detail: "Error desconocido"}));
+      escribiendo.remove();
+      $("txt").value = texto;
+      alert(`Error ${r.status}: ${JSON.stringify(d.detail)}`);
+      return;
+    }
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let streamEl = null;
+
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const chunks = buffer.split("\n\n");
+      buffer = chunks.pop() || "";
+      for (const raw of chunks) {
+        const line = raw.trim();
+        if (!line.startsWith("data:")) continue;
+        const payload = JSON.parse(line.slice(5));
+        if (payload.type === "start") {
+          conv = payload.conversacion_id; mem.set("lab06-conv", String(conv));
+          continue;
+        }
+        if (payload.type === "chunk") {
+          if (!streamEl) {
+            streamEl = document.createElement("div");
+            streamEl.className = "m asistente";
+            streamEl.dataset.stream = "1";
+            $("chat").appendChild(streamEl);
+          }
+          const actual = (streamEl.dataset.text || "") + payload.delta;
+          streamEl.dataset.text = actual;
+          streamEl.innerHTML = esc(actual);
+          $("scroll").scrollTop = $("scroll").scrollHeight;
+          continue;
+        }
+        if (payload.type === "done") {
+          if (streamEl) streamEl.remove();
+          payload.mensajes.forEach(m => pintar(m, true));
+          if (payload.conversacion_id) {
+            conv = payload.conversacion_id; mem.set("lab06-conv", String(conv));
+          }
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    escribiendo.textContent = "No se pudo conectar con la API.";
+    $("txt").value = texto;
+  } finally {
     escribiendo.remove();
-    if (!r.ok) { $("txt").value = texto; alert(`Error ${r.status}: ${JSON.stringify(d.detail)}`); return; }
-    conv = d.conversacion_id; mem.set("lab06-conv", String(conv));
-    d.mensajes.forEach(m => pintar(m, true));
-  } catch (e) { escribiendo.textContent = "No se pudo conectar con la API."; $("txt").value = texto; }
-  finally { $("enviar").disabled = false; $("txt").focus(); }
+    $("enviar").disabled = false; $("txt").focus();
+  }
 }
 
 $("enviar").onclick = enviar;

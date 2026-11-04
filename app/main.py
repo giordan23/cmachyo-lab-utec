@@ -10,12 +10,14 @@
 """
 from __future__ import annotations
 
+import asyncio
+import json
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 import numpy as np
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import FileResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app import metricas
@@ -134,6 +136,28 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
             return s.chat.enviar(m.conversacion_id, m.mensaje)
         except NoExiste:
             raise HTTPException(404, f"No existe la conversación {m.conversacion_id}") from None
+
+    @app.post("/api/chat/stream")
+    async def chat_stream(m: MensajeChat, s: Servicios = Depends(svc)):
+        try:
+            resultado = s.chat.enviar(m.conversacion_id, m.mensaje)
+        except NoExiste:
+            raise HTTPException(404, f"No existe la conversación {m.conversacion_id}") from None
+
+        texto = resultado["mensajes"][1]["texto"]
+
+        async def gen():
+            yield "data: " + json.dumps({"type": "start", "conversacion_id": resultado["conversacion_id"]}, ensure_ascii=False) + "\n\n"
+            partes = texto.split()
+            if not partes:
+                partes = [""]
+            for i, parte in enumerate(partes):
+                delta = (parte + (" " if i < len(partes) - 1 else ""))
+                await asyncio.sleep(0.03)
+                yield "data: " + json.dumps({"type": "chunk", "conversacion_id": resultado["conversacion_id"], "delta": delta}, ensure_ascii=False) + "\n\n"
+            yield "data: " + json.dumps({"type": "done", "conversacion_id": resultado["conversacion_id"], "mensajes": resultado["mensajes"]}, ensure_ascii=False) + "\n\n"
+
+        return StreamingResponse(gen(), media_type="text/event-stream")
 
     @app.post("/api/chat/nueva")
     def chat_nueva(s: Servicios = Depends(svc)):
