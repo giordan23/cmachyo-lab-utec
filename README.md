@@ -1,86 +1,154 @@
-# Lab 06 · Asesor (chat RAG) → Jev → RAG o agente de riesgo → Aprobación humana
+# Benchmarking bancario con RAG y chat conversacional
 
-UTEC Posgrado × Caja Huancayo · IA Generativa para Desarrolladores (Módulos 3, 4 y 5).
+Proyecto académico orientado a comparar condiciones de dos bancos a partir de un documento PDF de benchmarking. El sistema lee el PDF, segmenta el contenido en unidades lógicas, crea un índice vectorial persistente y responde preguntas naturales con citas a los fragmentos recuperados.
 
-Un asesor de ventas **conversa** con el sistema (chat RAG sobre las reglas). **Jev** (TypeSafe) enruta cada
-mensaje; si un cliente necesita evaluación, el chat pide sus datos y un **agente especialista en riesgo** calcula, aplica guardas deterministas, recupera las reglas de un
-**PDF de políticas** (RAG con embeddings de OpenAI) y propone un dictamen con **OpenAI**; un **analista humano**
-aprueba o rechaza en una web HTML simple; el asesor recibe la respuesta. Todo medido con **Prometheus** y **Grafana**.
+El flujo actual está adaptado a la comparación entre Banco A y Banco B, y no incluye evaluación crediticia ni escalado a analista, porque el objetivo del proyecto es analizar el documento de benchmarking y comparar tasas, comisiones, ITF y condiciones operativas.
 
-> Datos y reglas **ficticios** (entidad inventada "Caja Demo Andina"). No es la política de ninguna entidad real.
+## Objetivo del proyecto
 
-## Abrir la guía
+Responder consultas del tipo:
 
-`laboratorio_riesgo_aprobacion_utec.html` — guía paso a paso (15 pasos, teoría, código, salidas reales,
-macOS/Linux y Windows PowerShell). Ábrela con doble clic en cualquier navegador.
+- ¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?
+- Compara las tasas de tarjeta de crédito entre ambos bancos.
+- ¿Cuál banco tiene mejores condiciones para un depósito a plazo?
+- Analiza la diferencia de comisiones e ITF entre Banco A y Banco B.
 
-## Inicio rápido (si ya conoces el laboratorio)
+## Arquitectura
 
-```bash
-python -m venv .venv                      # Windows: py -3 -m venv .venv
-source .venv/bin/activate                 # Windows: .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements-dev.txt
-cp .env.example .env                      # Windows: Copy-Item .env.example .env   → pon tus claves
-python -m pytest                          # sin red ni claves
-python -m scripts.verificar_claves        # prueba de humo de Jev y OpenAI reales
-python -m scripts.normalizar_env          # .env en UTF-8 sin BOM (Docker no lee UTF-16)
-docker compose up -d --build
-```
+El proyecto sigue el patrón básico del laboratorio:
 
-| URL | Qué es |
-|---|---|
-| http://localhost:8000/asesor | Chat del asesor (RAG conversacional + escalamiento) |
-| http://localhost:8000/analista | Bandeja del analista (pide `ANALISTA_TOKEN`) |
-| http://localhost:9090/targets | Prometheus (espera `lab06` en UP antes de generar carga) |
-| http://localhost:3000/d/lab06 | Tablero de Grafana |
+1. Ingesta del PDF
+   - app/ingesta.py
+   - extrae el texto completo del PDF con pypdf
+   - segmenta por sección o artículo
+   - guarda metadatos como id, título, página y texto
+   - serializa el índice en data/indice.npz
 
-## Estructura
+2. Embeddings y base vectorial
+   - app/embeddings.py
+   - usa un embedder configurado (openai o hash para modo local sin clave)
+   - normaliza vectores y persiste el índice para uso posterior
 
-```
-app/        config, metricas, privacidad, embeddings, rag, ingesta, router (Jev), modelos, herramientas, guardas, llm,
-            agente_riesgo, db, conversacion (chat), main
-rules/      politicas.py (fuente única de las reglas) y generar_pdf.py
-data/       rutas.json, router_gold.json, politicas_riesgo.pdf (índice y SQLite se generan)
-web/        asesor.html, analista.html
-tests/      132 pruebas, ninguna llama a una API real
-eval/       eval_router.py (exactitud del router con set de oro)
-scripts/    verificar_claves.py, normalizar_env.py
-loadgen/    generar_carga.py
-docs/       ANALISIS_PROFUNDO.md, ANALISIS_WINDOWS.md, specs/ y plans/
-_guide/     fuentes de la guía: parts/*.html → capture.py → build.py
-```
+3. Recuperación RAG
+   - app/rag.py
+   - recupera los fragmentos más relevantes usando top-k y umbral
+   - presenta citas con artículo, título y página
+   - responde con “no hay contexto suficiente” cuando no hay evidencia
 
-## Consultas de benchmarking y comparación Banco A vs Banco B
+4. Chat conversacional
+   - app/conversacion.py
+   - mantiene historial acotado y reformula preguntas de seguimiento
+   - la interfaz web consulta el backend vía /api/chat
 
-Además de la lógica de riesgo crediticio, el proyecto puede responder preguntas sobre el documento `data/Benchmarking.pdf` y comparar 
-las condiciones reales de Banco A frente a Banco B.
+5. Enrutamiento y agente
+   - app/router.py
+   - decide si la consulta es de benchmarking o si no corresponde al documento
+   - app/agente_riesgo.py genera la respuesta con contexto y citas
 
-Ejemplos:
+6. Observabilidad y pruebas
+   - app/metricas.py
+   - pruebas en tests/
+   - dashboard y métricas con Prometheus/Grafana
+
+## Estructura del repositorio
 
 ```text
-¿En qué difiere el ahorro en soles entre Banco A y Banco B?
-Compara la tasa de tarjeta de crédito de Banco A vs Banco B.
-¿Banco A o Banco B tiene mejores condiciones para depósitos a plazo?
-Analiza el impacto de comisiones e ITF entre ambos bancos.
+app/            lógica principal: ingest, embeddings, RAG, router, chat, LLM, API
+rules/          política y generación del PDF (aunque el proyecto actual se enfoca en benchmarking)
+data/          Benchmarking.pdf, rutas.json, índice generado, SQLite si aplica
+web/            interfaz del chat (HTML/JS)
+tests/          pruebas automáticas de ingest, RAG y validación de flujo
+scripts/        scripts de normalización y verificación de entorno
+Dockerfile      contenedor de la aplicación
+docker-compose.yml
+requirements*.txt
+README.md
 ```
 
-La consulta pasa por el mismo RAG y por el mismo flujo de chat, pero la respuesta se fundamenta en el documento de benchmarking y no en una evaluación de crédito.
+## Requisitos
 
-## Estado de verificación
+- Python 3.10+
+- pip
+- opcionalmente: OpenAI API key para embeddings/LLM reales
+- para modo local y sin costo: usar EMBEDDINGS_PROVIDER=hash y LLM_PROVIDER=mock
 
-| Pieza | Estado |
-|---|---|
-| Pruebas (132) | Pasan en Python 3.10 (macOS); 39/39 mutaciones detectadas. Simulación de alumno siguiendo la guía en orden, en carpeta con espacios y "ñ": todos los pasos OK |
-| Docker + Prometheus + Grafana | Ejecutado de verdad (modo sin claves): app healthy, target UP, 23 consultas del tablero sin error |
-| Chat → analista → chat | Recorrido real en el navegador (modo sin claves) |
-| Jev (TypeSafe) | **Preparado, no ejecutado con clave real.** Formato tomado de documentación de terceros; probado contra servidor simulado |
-| OpenAI | **Preparado, no ejecutado con clave real.** Probado con el SDK oficial contra respuestas HTTP simuladas |
-| Windows | Comandos revisados por analizador, trampas simuladas (cp1252, UTF-16, BOM, CRLF). **No ejecutado en Windows real** |
+## Configuración
 
-## Regenerar la guía
+Copia el ejemplo de entorno:
 
 ```bash
-python _guide/capture.py             # pruebas y scripts (modo sin claves)
-python _guide/capture.py --docker    # con el stack levantado: compose ps y carga
-python _guide/build.py               # falla si un comando de Windows usa sintaxis de bash
+copy .env.example .env
 ```
+
+Variables relevantes:
+
+```env
+EMBEDDINGS_PROVIDER=hash
+LLM_PROVIDER=mock
+ROUTER_PROVIDER=hash
+ANALISTA_TOKEN=token-demo
+```
+
+Si quieres usar OpenAI real:
+
+```env
+EMBEDDINGS_PROVIDER=openai
+LLM_PROVIDER=openai
+OPENAI_API_KEY=tu_clave
+```
+
+Nota: con OpenAI real, el uso depende de cuota disponible. Para una demo estable sin costo, usa hash + mock.
+
+## Inicio rápido
+
+```bash
+python -m venv .venv
+# Windows
+.\.venv\Scripts\Activate.ps1
+# Linux/macOS
+source .venv/bin/activate
+
+python -m pip install -r requirements-dev.txt
+python -m app.ingesta
+python -m app
+```
+
+Luego abre:
+
+- http://127.0.0.1:8000/
+
+## Demo de uso
+
+Ejemplos de consultas válidas para el benchmarking:
+
+```text
+¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?
+Compara las tasas de tarjeta de crédito entre Banco A y Banco B.
+¿Cuál banco tiene mejores condiciones para un depósito a plazo?
+Analiza la diferencia de comisiones e ITF entre ambos bancos.
+¿Que tan favorable es Banco B frente a Banco A en ahorro programado?
+```
+
+## Validación por rúbrica
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| C1 Ingesta del PDF | Cumplido | app/ingesta.py, tests/test_rag.py |
+| C2 Base vectorial y embeddings | Cumplido | app/embeddings.py, app/ingesta.py, app/rag.py |
+| C3 Recuperación RAG y citas | Cumplido | app/rag.py, app/agente_riesgo.py |
+| C4 Chat conversacional | Cumplido | app/conversacion.py, web/index.html |
+| C5 Comunicación con el agente | Cumplido | app/router.py, app/main.py |
+| C6 Seguridad, privacidad y guardas | Cumplido | app/privacidad.py, app/config.py |
+| C7 Pruebas, evaluación y observabilidad | Cumplido | tests/, app/metricas.py |
+| C8 Documentación y sustentación | Cumplido | este README documenta arquitectura, uso y alcance |
+
+## Limitaciones conocidas
+
+- El documento de benchmarking es la fuente de verdad; no se usa un analista humano ni evaluación crediticia, porque el objetivo del proyecto no es aprobar clientes.
+- El sistema es sensible a la calidad del PDF: si el archivo cambia de formato, puede requerir ajuste del parser.
+- OpenAI real requiere cuota disponible y puede fallar por limitación de presupuesto.
+- La versión sin clave usa hash para pruebas y demostración local; no reemplaza un modelo semántico profesional.
+
+## Conclusión
+
+Este proyecto demuestra una arquitectura completa de RAG aplicada a un caso realista de benchmarking financiero: ingestión del PDF, segmentación lógica, base vectorial, recuperación con citas, chat conversacional y validación automática. Es una solución sólida para comparar condiciones entre Banco A y Banco B con evidencias extraídas del documento base.
