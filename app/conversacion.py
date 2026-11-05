@@ -45,8 +45,9 @@ class Chat:
 
         if ruta.ruta in {"consulta_producto", "consulta_benchmark"}:
             r = self.agente.responder_consulta(texto, previos)
-            meta.update(consulta=r["consulta"], llm_error=r["llm_error"],
-                        citas=[x for x in r["reglas"] if x["id"] in r["reglas_citadas"]])
+            meta.update(consulta=r["consulta"], llm_error=r["llm_error"], estado=r.get("estado"),
+                        motivo=r.get("motivo"), reservas=r.get("reservas", []),
+                        citas=r.get("citas") or [x for x in r["reglas"] if x["id"] in r["reglas_citadas"]])
             respuesta = r["respuesta"]
         elif ruta.ruta == "evaluacion_credito":
             respuesta = BENCHMARK_SOLO

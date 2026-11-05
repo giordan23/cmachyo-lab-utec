@@ -191,10 +191,15 @@ const EJEMPLOS = ["¿Qué diferencia hay entre Banco A y Banco B en ahorro en so
                   "¿Qué tan favorable es Banco B frente a Banco A en ahorro programado?"];
 let conv = mem.get("lab06-conv") ? Number(mem.get("lab06-conv")) : null, ultimo = 0, sondeo = null, ultimaPregunta = "";
 
+const paginasDe = c => {
+  const ps = (c.paginas && c.paginas.length) ? c.paginas : [c.pagina];
+  return ps.length === 1 ? `pág. ${ps[0]}` : `pág. ${ps.join(", ")}`;
+};
+
 function citas(lista) {
   if (!lista || !lista.length) return "";
   return `<details><summary>${lista.length} artículo(s) del manual</summary>${lista.map(c =>
-    `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (pág. ${c.pagina})<br>${esc(c.texto)}</div>`).join("")}</details>`;
+    `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (${paginasDe(c)})<br>${esc(c.texto)}</div>`).join("")}</details>`;
 }
 
 function pintar(m, enVivo = false) {
@@ -208,6 +213,8 @@ function pintar(m, enVivo = false) {
     const r = meta.router || {};
     if (meta.consulta && meta.consulta !== ultimaPregunta) h += `<div class="meta">Consulta de referencia: “${esc(meta.consulta)}”</div>`;
     h += citas(meta.citas);
+    if (meta.estado) h += `<div class="meta">guardas: ${esc(meta.estado)}${meta.reservas && meta.reservas.length ? " · " + meta.reservas.length + " reserva(s)" : ""}</div>`;
+    for (const rv of (meta.reservas || [])) h += `<div class="meta alerta">⚠ ${esc(rv)}</div>`;
     if (meta.inyeccion_sospechosa) h += `<div class="meta alerta">⚠ Este mensaje parece un intento de dar instrucciones al sistema. Quedó registrado.</div>`;
     h += `<div class="meta">ruta ${esc(meta.ruta)} · ${esc(r.proveedor)} ${r.confianza != null ? "· confianza " + Number(r.confianza).toFixed(2) : ""}${r.respaldo ? " · respaldo" : ""}</div>`;
   }
