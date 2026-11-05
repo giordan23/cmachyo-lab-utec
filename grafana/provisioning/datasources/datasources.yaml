@@ -1,0 +1,52 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 5s
+      # MÉTRICA -> TRAZA: un exemplar (punto sobre el histograma) lleva un trace_id; clic = abre la traza en Tempo
+      exemplarTraceIdDestinations:
+        - { name: trace_id, datasourceUid: tempo }
+
+  - name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # TRAZA -> LOGS: desde un span, salta a los logs de ese mismo trace_id
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: "-2m"
+        spanEndTimeShift: "5m"
+        customQuery: true
+        query: '{service_name="rag-api"} | trace_id="${__trace.traceId}"'
+      # TRAZA -> MÉTRICAS: desde un span, salta a la tasa/latencia de esa operación
+      tracesToMetrics:
+        datasourceUid: prometheus
+        spanStartTimeShift: "-2m"
+        spanEndTimeShift: "5m"
+        queries:
+          - name: Tasa de spans de esta operación
+            query: 'sum(rate(traces_span_metrics_calls_total{$$__tags}[1m]))'
+      nodeGraph: { enabled: true }
+      traceQuery: { timeShiftEnabled: true, spanStartTimeShift: "-2m", spanEndTimeShift: "5m" }
+
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      # LOG -> TRAZA: el metadato estructurado trace_id se convierte en un enlace a Tempo
+      derivedFields:
+        - name: TraceID
+          matcherType: label
+          matcherRegex: trace_id
+          url: '$${__value.raw}'
+          datasourceUid: tempo
+          urlDisplayLabel: Ver traza

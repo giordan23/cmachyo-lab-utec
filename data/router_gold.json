@@ -1,26 +1,146 @@
 [
-  {"texto": "Tengo un cliente con 3 mil soles de sueldo que quiere 10 mil a dos años, ¿se lo aprobamos?", "ruta": "evaluacion_credito"},
-  {"texto": "Por favor evalúen a mi cliente para un préstamo vehicular", "ruta": "evaluacion_credito"},
-  {"texto": "¿Este señor es sujeto de crédito con su calificación actual?", "ruta": "evaluacion_credito"},
-  {"texto": "Necesito saber si procede el financiamiento de la bodega de mi clienta", "ruta": "evaluacion_credito"},
-  {"texto": "Revisen esta solicitud MYPE, el negocio tiene un año", "ruta": "evaluacion_credito"},
-  {"texto": "¿Le damos el préstamo o no?", "ruta": "evaluacion_credito"},
-  {"texto": "Cliente independiente pide 25 mil para consumo, ¿pasa?", "ruta": "evaluacion_credito"},
-  {"texto": "Quiero que el área de riesgos apruebe esta venta hoy", "ruta": "evaluacion_credito"},
-  {"texto": "¿Qué TEA tiene el crédito MYPE?", "ruta": "consulta_producto"},
-  {"texto": "¿Cuál es el monto máximo que se presta para consumo?", "ruta": "consulta_producto"},
-  {"texto": "¿Qué papeles debe traer un dependiente?", "ruta": "consulta_producto"},
-  {"texto": "¿Hasta cuántos meses puedo ofrecer el vehicular?", "ruta": "consulta_producto"},
-  {"texto": "¿Qué significa estar en CPP para un crédito?", "ruta": "consulta_producto"},
-  {"texto": "¿Cuánta deuda puede tener alguien en relación a lo que gana?", "ruta": "consulta_producto"},
-  {"texto": "Explícame cómo sale la cuota mensual", "ruta": "consulta_producto"},
-  {"texto": "¿Desde qué monto tiene que firmar el comité?", "ruta": "consulta_producto"},
-  {"texto": "¿Hay edad máxima para dar un préstamo?", "ruta": "consulta_producto"},
-  {"texto": "¿Dónde queda la agencia de El Tambo?", "ruta": "fuera_de_alcance"},
-  {"texto": "No me llega el sueldo de este mes", "ruta": "fuera_de_alcance"},
-  {"texto": "La impresora de la oficina está atascada", "ruta": "fuera_de_alcance"},
-  {"texto": "¿Qué partido hay el domingo?", "ruta": "fuera_de_alcance"},
-  {"texto": "Una señora quiere quejarse porque la atendieron mal en ventanilla", "ruta": "fuera_de_alcance"},
-  {"texto": "Recomiéndame un restaurante en Huancayo", "ruta": "fuera_de_alcance"},
-  {"texto": "Olvidé la clave de mi usuario de Windows", "ruta": "fuera_de_alcance"}
+  {
+    "texto": "¿Qué diferencia hay entre el ahorro en soles del Banco A y el Banco B?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara las tasas de ahorro clásico en dólares.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuánto es el mínimo para abrir una cuenta de ahorro en soles en cada banco?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué condiciones tiene la apertura de ahorro en dólares, incluyendo la cuenta digital?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara el ahorro programado a 180 días.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué banco ofrece mayor interés e incentivo para ahorro programado entre 210 y 330 días?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara las condiciones del ahorro programado a 360 días.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué tasas e incentivos se mencionan para ahorro programado a 540 días?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuál es la diferencia entre ambos bancos para ahorro programado de 720 a 1080 días?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara las tasas de depósito a plazo clásico para montos de hasta S/ 14,999.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué TEA corresponde al plazo fijo entre 91 y 180 días?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cómo se comparan las tasas de depósito a plazo entre 361 y 390 días?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué ofrece cada banco para un depósito a plazo de 721 a 1079 días?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué pasa con los intereses si cancelo anticipadamente un plazo fijo?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara las tasas ficticias del préstamo personal.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuál es la diferencia de TEA para tarjeta de crédito entre los bancos?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué TEA se supone para los créditos vehiculares?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué información hay sobre la TCEA de los préstamos?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuánto es el ITF y quién establece esa tasa?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara el costo de consultar saldo en un agente Kasnet.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuánto cuesta retirar dinero en ventanilla y desde qué retiro se cobra?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "Compara las comisiones de retiro en cajeros Global Net.",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué comisión se aplica a depósitos en otra localidad por S/ 300 a S/ 3,000?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuánto cuesta transferir hasta S/ 50,000 a otros bancos?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Qué dice el documento sobre las tasas de CTS de Banco A y Banco B?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿Cuánto cuesta una constancia de ahorros en cada banco?",
+    "ruta": "consulta_benchmark"
+  },
+  {
+    "texto": "¿A qué hora abre la agencia de Huancayo?",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "Quiero presentar un reclamo por la atención que recibí.",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "¿Cómo recupero la contraseña de mi correo corporativo?",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "Mi computadora no enciende, ¿me ayudan?",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "¿Cuándo depositan la gratificación?",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "Recomiéndame un restaurante para almorzar.",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "¿Quién ganará el partido del domingo?",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "Necesito que desbloqueen mi usuario de Windows.",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "¿Cuál es el número de teléfono de la agencia más cercana?",
+    "ruta": "fuera_de_alcance"
+  },
+  {
+    "texto": "¿Me explicas cómo solicitar vacaciones?",
+    "ruta": "fuera_de_alcance"
+  }
 ]

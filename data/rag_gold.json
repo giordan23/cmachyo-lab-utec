@@ -1,0 +1,265 @@
+[
+  {
+    "id": "ahorro-soles-tea",
+    "pregunta": "¿Cuál es la TEA del ahorro en soles en cada banco?",
+    "respuesta_esperada": "Banco A publica 0.30% y Banco B tiene una TEA supuesta de 0.40%; el dato de Banco B es ficticio para este ejercicio.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["Ahorro en soles", "0.30%", "0.40%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "apertura-ahorro-soles",
+    "pregunta": "¿Cuál es el mínimo de apertura para ahorro en soles?",
+    "respuesta_esperada": "El mínimo indicado es S/ 5 para Banco A y S/ 10 para Banco B (supuesto ficticio).",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["Apertura de ahorro en soles", "S/ 5", "S/ 10"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "ahorro-dolares-tea",
+    "pregunta": "Compara la TEA del ahorro clásico en dólares.",
+    "respuesta_esperada": "Banco A indica 0.35% y Banco B 0.50% (supuesto ficticio).",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["Ahorro clásico en dólares", "0.35%", "0.50%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "apertura-ahorro-dolares",
+    "pregunta": "¿Cuánto se necesita para abrir ahorro en dólares?",
+    "respuesta_esperada": "Banco A indica US$ 5, o US$ 0 para cuenta digital; Banco B supone US$ 10.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["Apertura de ahorro en dólares", "US$ 5", "US$ 0", "US$ 10"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "ahorro-cash-dolares",
+    "pregunta": "¿Qué TEA tiene el Ahorro Cash en dólares?",
+    "respuesta_esperada": "El texto de Banco A menciona 0.10% TEA, pero advierte que la disposición original no permite confirmar otros detalles. Banco B tiene una TEA supuesta de 0.20%.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["Ahorro Cash en dólares", "0.10%", "0.20%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "ahorro-programado-180",
+    "pregunta": "Compara interés e incentivo del ahorro programado a 180 días.",
+    "respuesta_esperada": "Banco A: interés 0.50% e incentivo 3.00%. Banco B: interés 0.60% e incentivo 2.50%; las cifras de Banco B son supuestas.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["180 días", "0.50%", "3.00%", "0.60%", "2.50%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "ahorro-programado-210-330",
+    "pregunta": "¿Qué condiciones hay para ahorro programado entre 210 y 330 días?",
+    "respuesta_esperada": "Banco A indica interés 0.90% más incentivo 3.25%; Banco B supone interés 0.80% más incentivo 3.00%.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["210", "330 días", "0.90%", "3.25%", "0.80%", "3.00%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "ahorro-programado-720-1080",
+    "pregunta": "Compara interés e incentivo del ahorro programado de 720 a 1080 días.",
+    "respuesta_esperada": "Banco A indica interés 1.20% e incentivo 4.50%; Banco B supone interés 1.20% e incentivo 4.00%.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["720", "1080 días", "1.20%", "4.50%", "4.00%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "plazo-fijo-91-180",
+    "pregunta": "¿Qué tasas tiene el depósito a plazo clásico entre 91 y 180 días?",
+    "respuesta_esperada": "Banco A publica tasas desde 2.35% hasta 2.95%, según el monto. Banco B presenta un rango ficticio de 2.25% a 2.85%.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 2,
+        "contiene": ["91", "180 días", "2.35%", "2.95%", "2.25%", "2.85%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "plazo-fijo-361-390",
+    "pregunta": "Compara las tasas del plazo fijo entre 361 y 390 días.",
+    "respuesta_esperada": "Banco A publica tasas de 3.80% a 4.40%, según el monto. El rango ficticio de Banco B es 3.70% a 4.30%.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 2,
+        "contiene": ["361", "390 días", "3.80%", "4.40%", "3.70%", "4.30%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "plazo-fijo-1080",
+    "pregunta": "¿Qué TEA aparece para depósitos a plazo de 1080 días a más?",
+    "respuesta_esperada": "Banco A indica 1.00% para todos los rangos de monto de la tabla. Banco B indica 0.80% como supuesto ficticio.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 2,
+        "contiene": ["1080 días a más", "1.00%", "0.80%"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "cancelacion-anticipada",
+    "pregunta": "¿Qué ocurre si cancelo anticipadamente un plazo fijo?",
+    "respuesta_esperada": "Para cancelaciones hasta 30 días, Banco A indica que no se generan intereses. Desde el día 31, se paga la menor tasa aplicable al ahorro corriente.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 2,
+        "contiene": ["cancelaciones anticipadas", "hasta 30 días", "no generan intereses", "día 31"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "tea-prestamo-personal",
+    "pregunta": "¿Cuál es la TEA del préstamo personal en ambos bancos?",
+    "respuesta_esperada": "El documento muestra tasas ficticias: Banco A 39.90% y Banco B 35.90%. Recomienda solicitar la TCEA para comparar el costo real.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 2,
+        "contiene": ["Préstamo personal", "39.90%", "35.90%", "ficticia"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "tea-credito-vehicular",
+    "pregunta": "¿Qué tasas se muestran para el crédito vehicular?",
+    "respuesta_esperada": "Las tasas TEA son ficticias: 16.90% para Banco A y 15.90% para Banco B.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 3,
+        "contiene": ["Crédito vehicular", "16.90%", "15.90%", "ficticia"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "tcea-prestamo",
+    "pregunta": "¿Cuál es la TCEA exacta del préstamo personal en Banco A?",
+    "respuesta_esperada": "No se puede determinar con la información disponible. El documento ofrece una TEA ficticia, no una TCEA, y señala que la TCEA incorpora intereses, comisiones y gastos.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 2,
+        "contiene": ["Préstamo personal", "TEA ficticia"]
+      },
+      {
+        "pagina": 3,
+        "contiene": ["TCEA", "No se puede calcular"]
+      }
+    ],
+    "debe_abstenerse": true
+  },
+  {
+    "id": "itf",
+    "pregunta": "¿Qué porcentaje de ITF se aplica y quién fija la tasa?",
+    "respuesta_esperada": "El documento indica 0.005% por operación afecta para ambos bancos. Aclara que el ITF es un impuesto nacional, no una tasa fijada por cada banco.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 3,
+        "contiene": ["ITF", "0.005%", "impuesto nacional"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "kasnet-consulta-saldo",
+    "pregunta": "¿Cuánto cuesta consultar el saldo en Kasnet?",
+    "respuesta_esperada": "Banco A cobra S/ 1.20 y Banco B supone S/ 1.00.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 3,
+        "contiene": ["Consulta de saldo en agente Kasnet", "S/ 1.20", "S/ 1.00"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "retiro-ventanilla",
+    "pregunta": "¿Desde qué retiro se cobra en ventanilla y cuánto?",
+    "respuesta_esperada": "Banco A cobra S/ 1.50 desde el séptimo retiro y US$ 0.50 en dólares. Banco B supone S/ 1.00 desde el sexto retiro.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 3,
+        "contiene": ["Retiro en ventanilla", "S/ 1.50", "séptimo retiro", "US$ 0.50", "S/ 1.00", "sexto retiro"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "retiro-global-net",
+    "pregunta": "Compara la comisión de retiro en cajeros Global Net.",
+    "respuesta_esperada": "Banco A cobra S/ 3.10 o US$ 1.06 desde el cuarto retiro mensual. Banco B supone S/ 2.50 o US$ 0.90, también desde el cuarto retiro.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 3,
+        "contiene": ["Retiro en cajero Global Net", "S/ 3.10", "US$ 1.06", "cuarto retiro", "S/ 2.50", "US$ 0.90"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "transferencia-otros-bancos",
+    "pregunta": "¿Cuánto cuesta transferir hasta S/ 50,000 a otros bancos?",
+    "respuesta_esperada": "Banco A indica S/ 40 y Banco B supone S/ 35.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 3,
+        "contiene": ["Transferencia a otros bancos hasta S/ 50,000", "S/ 40", "S/ 35"]
+      }
+    ],
+    "debe_abstenerse": false
+  },
+  {
+    "id": "tasa-cts-banco-a",
+    "pregunta": "¿Cuál es la tasa exacta de CTS de Banco A?",
+    "respuesta_esperada": "No se puede identificar una tabla completa de tasas de CTS de Banco A en el documento. La tasa de 4.00% atribuida a Banco B es un supuesto ficticio y no permite inferir la de Banco A.",
+    "fuentes_esperadas": [
+      {
+        "pagina": 1,
+        "contiene": ["CTS", "no permite identificar", "4.00%"]
+      }
+    ],
+    "debe_abstenerse": true
+  },
+  {
+    "id": "agencia-horario",
+    "pregunta": "¿A qué hora cierra la agencia de Huancayo?",
+    "respuesta_esperada": "El PDF de benchmarking no contiene horarios ni ubicación de agencias, así que no hay evidencia para responder.",
+    "fuentes_esperadas": [],
+    "debe_abstenerse": true
+  }
+]

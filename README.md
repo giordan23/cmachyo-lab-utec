@@ -142,6 +142,12 @@ Analiza la diferencia de comisiones e ITF entre ambos bancos.
 | C7 Pruebas, evaluación y observabilidad | Cumplido | tests/, app/metricas.py |
 | C8 Documentación y sustentación | Cumplido | este README documenta arquitectura, uso y alcance |
 
+## Sets de evaluación
+
+- `data/router_gold.json` contiene 36 consultas etiquetadas con las rutas actuales. Ejecuta `python -m eval.eval_router --proveedor hash` para medir la exactitud del router; este resultado evalúa el enrutamiento, no la calidad de la respuesta.
+- `data/rag_gold.json` contiene 22 preguntas con respuesta esperada, evidencia por página y casos donde el sistema debe abstenerse. Es un set de referencia manual: todavía no hay un evaluador automático que calcule métricas RAG sobre él.
+- Ambos sets son ejemplos académicos escritos manualmente. Antes de usarlos para decisiones de negocio, amplíalos y revísalos con expertos; la exactitud en un set pequeño no garantiza seguridad ni precisión en producción.
+
 ## Limitaciones conocidas
 
 - El documento de benchmarking es la fuente de verdad; no se usa un analista humano ni evaluación crediticia, porque el objetivo del proyecto no es aprobar clientes.

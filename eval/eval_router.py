@@ -4,8 +4,8 @@ Uso:   python -m eval.eval_router                      (el ROUTER_PROVIDER de tu
        python -m eval.eval_router --proveedor hash     (jev | embeddings | hash)
 
 Las frases del set de oro NO son los ejemplos de data/rutas.json: medir con los mismos ejemplos daría 100% falso.
-Cuidado: 24 frases es poco. Sirve para comparar proveedores y elegir un umbral razonable, no para garantizar calidad.
-Con jev/embeddings hace llamadas reales (24 a Jev ≈ 4 000 tokens ≈ USD 0.0002 con el precio de .env).
+El set es pequeño y escrito manualmente. Sirve para comparar proveedores y elegir un umbral razonable, no para
+garantizar calidad. Con jev/embeddings se hace una llamada real por caso y el costo depende del tamaño del set.
 """
 from __future__ import annotations
 
