@@ -39,6 +39,12 @@ CHAT_ESCALADAS = Counter("lab06_chat_escaladas_total", "Conversaciones escaladas
 INYECCION = Counter("lab06_inyeccion_sospechosa_total", "Mensajes que Jev marcó como intento de manipular al sistema")
 PII_ENMASCARADO = Counter("lab06_pii_enmascarado_total", "Datos personales enmascarados antes de salir a un tercero", ["tipo"])
 COLA_PENDIENTE = Gauge("lab06_cola_pendiente", "Solicitudes esperando al analista")
+GUARDA_RESPUESTA = Counter("lab06_guarda_respuesta_total", "Estado de la respuesta tras las guardas deterministas",
+                            ["estado"])
+GUARDA_RESERVAS = Counter("lab06_guarda_reservas_total", "Reservas aplicadas a la respuesta del LLM", ["tipo"])
+GUARDA_CIFRAS = Counter("lab06_guarda_cifras_sin_grounding_total", "Cifras de la respuesta que no existen en el corpus")
+CITA_PAGINA_CORREGIDA = Counter("lab06_cita_pagina_corregida_total",
+                                 "Citas cuya página se corrigió porque el texto citado vive en otra página")
 TIEMPO_APROBACION = Histogram("lab06_tiempo_aprobacion_segundos", "Desde que llega la solicitud hasta la decisión humana",
                               buckets=[5, 15, 30, 60, 120, 300, 600, 1800, 3600])
 
@@ -71,3 +77,7 @@ def inicializar_series() -> None:
         PII_ENMASCARADO.labels(t)
     for m in ("auth", "validacion", "limite", "servidor", "red"):
         ROUTER_RESPALDO.labels(m)
+    for e in ("PUBLICAR", "PUBLICAR_CON_RESERVA", "ABSTENER"):
+        GUARDA_RESPUESTA.labels(e)
+    for t in ("ficticio_total", "dato_ficticio", "documento_incompleto", "fila_uniforme", "otra"):
+        GUARDA_RESERVAS.labels(t)

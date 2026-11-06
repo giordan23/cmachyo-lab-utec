@@ -70,7 +70,7 @@ def construir_servicios(settings: Settings | None = None) -> Servicios:
     settings.validar()
     embedder = _embedder_compatible(settings, crear_embedder(settings))
     rag = RAG(settings.indice_path, embedder, settings.rag_min_score, settings.rag_top_k)
-    return Servicios(settings, crear_router(settings, embedder), AgenteRiesgo(rag, crear_llm(settings)),
+    return Servicios(settings, crear_router(settings, embedder), AgenteRiesgo(rag, crear_llm(settings), settings.pdf_path),
                      Repositorio(settings.db_path))
 
 

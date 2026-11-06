@@ -14,8 +14,8 @@ from app.router import EmbeddingRouter, JevError, JevRouter, RouterConRespaldo, 
 RUTAS = cargar_rutas()
 
 
-def respuesta_jev(eleccion="consulta_ahorros", probs=None):
-    probs = probs or {"consulta_ahorros": 0.91, "fuera_de_alcance": 0.09}
+def respuesta_jev(eleccion="consulta_benchmark", probs=None):
+    probs = probs or {"consulta_benchmark": 0.91, "fuera_de_alcance": 0.09}
     return {"model": "jev-1.13.0", "usage": {"input_tokens": 180, "output_tokens": 0},
             "answers": {"ruta": {"type": "choice", "choice": eleccion, "confidence": 0.88, "probabilities": probs}}}
 
@@ -44,12 +44,12 @@ def router(servidor, monkeypatch, **env):
 def test_cuerpo_y_cabeceras_de_la_peticion(monkeypatch):
     srv = Servidor((200, respuesta_jev(), {}))
     r, _ = router(srv, monkeypatch)
-    r.enrutar("¿Mi cliente califica?")
+    r.enrutar("¿Qué diferencia hay entre los bancos?")
     p = srv.peticiones[0]
     assert p.method == "POST" and p.url.path == "/v1/systemone"
     assert p.headers["authorization"]
     cuerpo = json.loads(p.content)
-    assert cuerpo["model"] == "jev-latest" and cuerpo["state"] == "¿Mi cliente califica?"
+    assert cuerpo["model"] == "jev-latest" and cuerpo["state"] == "¿Qué diferencia hay entre los bancos?"
     q = cuerpo["questions"]["ruta"]
     assert q["type"] == "choice" and set(q["criteria"]) == set(RUTAS)
 
@@ -57,21 +57,21 @@ def test_cuerpo_y_cabeceras_de_la_peticion(monkeypatch):
 def test_lee_ruta_probabilidad_y_modelo(monkeypatch):
     r, _ = router(Servidor((200, respuesta_jev(), {})), monkeypatch)
     res = r.enrutar("x")
-    assert (res.ruta, res.confianza, res.modelo, res.proveedor) == ("consulta_ahorros", 0.91, "jev-1.13.0", "jev")
+    assert (res.ruta, res.confianza, res.modelo, res.proveedor) == ("consulta_benchmark", 0.91, "jev-1.13.0", "jev")
 
 
 def test_bajo_el_umbral_va_a_fuera_de_alcance(monkeypatch):
-    probs = {"consulta_ahorros": 0.40, "fuera_de_alcance": 0.60}
+    probs = {"consulta_benchmark": 0.40, "fuera_de_alcance": 0.60}
     r, _ = router(Servidor((200, respuesta_jev(probs=probs), {})), monkeypatch)
     res = r.enrutar("algo ambiguo")
     assert res.ruta == "fuera_de_alcance" and res.bajo_umbral and res.confianza == 0.40
 
 
 def test_sin_campo_choice_usa_la_opcion_mas_probable(monkeypatch):
-    cuerpo = respuesta_jev(probs={"consulta_ahorros": 0.8, "fuera_de_alcance": 0.2})
+    cuerpo = respuesta_jev(probs={"consulta_benchmark": 0.1, "fuera_de_alcance": 0.9})
     del cuerpo["answers"]["ruta"]["choice"]
     r, _ = router(Servidor((200, cuerpo, {})), monkeypatch)
-    assert r.enrutar("x").ruta == "consulta_ahorros"
+    assert r.enrutar("x").ruta == "fuera_de_alcance"
 
 
 def test_clave_invalida_no_reintenta(monkeypatch):
@@ -85,7 +85,7 @@ def test_clave_invalida_no_reintenta(monkeypatch):
 def test_limite_429_respeta_retry_after_y_reintenta(monkeypatch):
     srv = Servidor((429, {}, {"retry-after": "2"}), (200, respuesta_jev(), {}))
     r, esperas = router(srv, monkeypatch)
-    assert r.enrutar("x").ruta == "consulta_ahorros"
+    assert r.enrutar("x").ruta == "consulta_benchmark"
     assert len(srv.peticiones) == 2 and esperas == [2.0]
 
 
@@ -106,11 +106,9 @@ def test_ruta_desconocida_es_error_de_validacion(monkeypatch):
 def test_jev_falla_usa_respaldo_y_lo_cuenta(monkeypatch):
     r, _ = router(Servidor((401, {}, {})), monkeypatch)
     antes = metricas.ROUTER_RESPALDO.labels("auth")._value.get()
-    # El respaldo usa umbral bajo (0.3) para verificar el mecanismo; el umbral de producción es independiente.
-    respaldo = EmbeddingRouter(RUTAS, HashEmbedder(), 0.3)
-    combinado = RouterConRespaldo(r, respaldo)
-    res = combinado.enrutar("¿Cuál es la tasa del ahorro programado?")
-    assert res.proveedor == "hash" and "auth" in res.respaldo
+    combinado = RouterConRespaldo(r, EmbeddingRouter(RUTAS, HashEmbedder(), 0.3))
+    res = combinado.enrutar("¿Qué diferencia hay entre el ahorro en soles del Banco A y el Banco B?")
+    assert res.proveedor == "hash" and res.ruta == "consulta_benchmark" and "auth" in res.respaldo
     assert metricas.ROUTER_RESPALDO.labels("auth")._value.get() == antes + 1
 
 
@@ -143,10 +141,10 @@ def test_router_por_embeddings_pregunta_geografica_va_a_fuera_de_alcance():
 def test_jev_recibe_el_historial_y_la_pregunta_de_inyeccion(monkeypatch):
     srv = Servidor((200, respuesta_jev(), {}))
     r, _ = router(srv, monkeypatch)
-    r.enrutar("¿Y para el ahorro programado?", historial=["a", "b", "¿Cuál es el plazo máximo del ahorro a plazo?", "c"])
+    r.enrutar("¿Y para el depósito a plazo?", historial=["a", "b", "¿Qué TEA tiene el ahorro en soles?", "c"])
     cuerpo = json.loads(srv.peticiones[0].content)
-    assert cuerpo["state"].endswith("Mensaje actual:\n¿Y para el ahorro programado?")
-    assert "- a\n" not in cuerpo["state"] and "- c" in cuerpo["state"]
+    assert cuerpo["state"].endswith("Mensaje actual:\n¿Y para el depósito a plazo?")
+    assert "- a\n" not in cuerpo["state"] and "- c" in cuerpo["state"]        # solo los 3 últimos
     assert cuerpo["questions"]["inyeccion"]["type"] == "noul"
 
 

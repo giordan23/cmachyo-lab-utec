@@ -122,6 +122,25 @@ Luego abre:
 ¿Hay información documentada sobre ahorro programado o ahorro para jóvenes?
 ```
 
+## Validación por rúbrica
+
+| Criterio | Estado | Evidencia |
+|---|---|---|
+| C1 Ingesta del PDF | Cumplido | app/ingesta.py, tests/test_rag.py |
+| C2 Base vectorial y embeddings | Cumplido | app/embeddings.py, app/ingesta.py, app/rag.py |
+| C3 Recuperación RAG y citas | Cumplido | app/rag.py, app/agente_riesgo.py |
+| C4 Chat conversacional | Cumplido | app/conversacion.py, web/index.html |
+| C5 Comunicación con el agente | Cumplido | app/router.py, app/main.py |
+| C6 Seguridad, privacidad y guardas | Cumplido | app/privacidad.py, app/config.py |
+| C7 Pruebas, evaluación y observabilidad | Cumplido | tests/, app/metricas.py |
+| C8 Documentación y sustentación | Cumplido | este README documenta arquitectura, uso y alcance |
+
+## Sets de evaluación
+
+- `data/router_gold.json` contiene 36 consultas etiquetadas con las rutas actuales. Ejecuta `python -m eval.eval_router --proveedor hash` para medir la exactitud del router; este resultado evalúa el enrutamiento, no la calidad de la respuesta.
+- `data/rag_gold.json` contiene 22 preguntas con respuesta esperada, evidencia por página y casos donde el sistema debe abstenerse. Es un set de referencia manual: todavía no hay un evaluador automático que calcule métricas RAG sobre él.
+- Ambos sets son ejemplos académicos escritos manualmente. Antes de usarlos para decisiones de negocio, amplíalos y revísalos con expertos; la exactitud en un set pequeño no garantiza seguridad ni precisión en producción.
+
 ## Limitaciones conocidas
 
 - El sistema responde con base en los documentos indexados; si el contenido no incluye la respuesta, la respuesta debe indicar falta de evidencia.

@@ -426,30 +426,15 @@ const mem = {
   set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch {} }
 };
 
-/* ── Estado ──────────────────────────────────────────────────────── */
-let conv = mem.get("ch-conv") ? Number(mem.get("ch-conv")) : null;
-let ultimo = 0;
-let ultimaPregunta = "";
+const paginasDe = c => {
+  const ps = (c.paginas && c.paginas.length) ? c.paginas : [c.pagina];
+  return ps.length === 1 ? `pág. ${ps[0]}` : `pág. ${ps.join(", ")}`;
+};
 
-const EJEMPLOS = [
-  "¿Qué información documentada existe sobre cuentas de ahorro?",
-  "¿Cuáles son los requisitos para un depósito a plazo?",
-  "¿Qué condiciones se mencionan para el ahorro programado?",
-  "¿Hay información sobre ahorro para jóvenes o ahorro voluntario?",
-  "¿Qué dice el documento sobre los requisitos para ahorrar?",
-];
-
-/* ── Citas ───────────────────────────────────────────────────────── */
-function renderCitas(lista) {
-  if (!lista?.length) return "";
-  const items = lista.map(c => `
-    <div class="cita">
-      <div class="cita-cabecera">${esc(c.titulo || "Fragmento")}</div>
-      <div class="cita-ref">Ref. ${esc(c.id || "—")} · Pág. ${esc(c.pagina ?? "—")}</div>
-      <div class="cita-cuerpo">${esc(c.texto || "")}</div>
-    </div>`).join("");
-  const n = lista.length;
-  return `<details><summary>${n} fuente${n > 1 ? "s" : ""} citada${n > 1 ? "s" : ""}</summary>${items}</details>`;
+function citas(lista) {
+  if (!lista || !lista.length) return "";
+  return `<details><summary>${lista.length} artículo(s) del manual</summary>${lista.map(c =>
+    `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (${paginasDe(c)})<br>${esc(c.texto)}</div>`).join("")}</details>`;
 }
 
 /* ── Pintar mensaje ──────────────────────────────────────────────── */
@@ -470,21 +455,12 @@ function pintar(m) {
 
   if (m.rol === "asistente") {
     const r = meta.router || {};
-    let metaHtml = "";
-
-    if (meta.consulta && meta.consulta !== ultimaPregunta) {
-      metaHtml += `<div class="meta-consulta">Búsqueda: "${esc(meta.consulta)}"</div>`;
-    }
-
-    const conf = r.confianza != null ? ` · confianza ${Number(r.confianza).toFixed(2)}` : "";
-    metaHtml += `<div class="meta-ruta"><span class="meta-dot" aria-hidden="true"></span>ruta: ${esc(meta.ruta)} · ${esc(r.proveedor || "—")}${esc(conf)}</div>`;
-
-    if (meta.inyeccion_sospechosa) {
-      metaHtml += `<div class="alerta-inj" role="alert">⚠ Posible intento de manipulación detectado.</div>`;
-    }
-
-    h += renderCitas(meta.citas);
-    h += `<div class="meta">${metaHtml}</div>`;
+    if (meta.consulta && meta.consulta !== ultimaPregunta) h += `<div class="meta">Consulta de referencia: “${esc(meta.consulta)}”</div>`;
+    h += citas(meta.citas);
+    if (meta.estado) h += `<div class="meta">guardas: ${esc(meta.estado)}${meta.reservas && meta.reservas.length ? " · " + meta.reservas.length + " reserva(s)" : ""}</div>`;
+    for (const rv of (meta.reservas || [])) h += `<div class="meta alerta">⚠ ${esc(rv)}</div>`;
+    if (meta.inyeccion_sospechosa) h += `<div class="meta alerta">⚠ Este mensaje parece un intento de dar instrucciones al sistema. Quedó registrado.</div>`;
+    h += `<div class="meta">ruta ${esc(meta.ruta)} · ${esc(r.proveedor)} ${r.confianza != null ? "· confianza " + Number(r.confianza).toFixed(2) : ""}${r.respaldo ? " · respaldo" : ""}</div>`;
   }
 
   if (m.rol === "usuario" || m.rol === "asesor") ultimaPregunta = m.texto;

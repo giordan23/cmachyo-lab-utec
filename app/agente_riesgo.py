@@ -10,7 +10,7 @@ contra prompt injection. No se activan desde el chat del asistente de ahorro.
 """
 from __future__ import annotations
 
-from app import guardas, herramientas, metricas
+from app import guardas, guardas_respuesta, herramientas, metricas
 from app.llm import ESQUEMA_DICTAMEN, ESQUEMA_REFORMULA, ESQUEMA_RESPUESTA, LLMError
 from app.modelos import Solicitud
 from app.rag import RAG, Fragmento
@@ -59,8 +59,18 @@ def _citas_validas(citadas: list, contexto_ids: set[str]) -> list[str]:
 
 
 class AgenteRiesgo:
-    def __init__(self, rag: RAG, llm):
+    def __init__(self, rag: RAG, llm, pdf_path=None):
         self.rag, self.llm = rag, llm
+        self.pdf_path = pdf_path
+        self._guardas = None
+
+    @property
+    def guardas(self):
+        """Guardas deterministas de la respuesta (C6). Se construyen una vez: el PDF se lee una sola vez."""
+        if self._guardas is None:
+            paginas = guardas_respuesta.PaginasPDF(self.pdf_path)
+            self._guardas = guardas_respuesta.GuardasRespuesta(self.rag.fragmentos, paginas)
+        return self._guardas
 
     def _reglas_para(self, s: Solicitud, hallazgos: list[guardas.Hallazgo]) -> list[Fragmento]:
         """Usado internamente por evaluar() para las pruebas de cobertura de guardas."""
@@ -138,9 +148,22 @@ class AgenteRiesgo:
         base = {"reglas": [_regla_dict(f) for f in reglas], "consulta": consulta}
         try:
             r = self.llm.generar(INSTRUCCIONES_CONSULTA, contexto, ESQUEMA_RESPUESTA, "respuesta")
-            return {**base, "respuesta": str(r.datos.get("respuesta", "")), "llm_modelo": r.modelo, "llm_error": "",
-                    "reglas_citadas": _citas_validas(r.datos.get("reglas_citadas", []), {f.id for f in reglas})}
+            respuesta = str(r.datos.get("respuesta", ""))
+            citas_ids = _citas_validas(r.datos.get("reglas_citadas", []), {f.id for f in reglas})
         except LLMError as e:
-            return {**base, "respuesta": "No pude redactar la respuesta. Fragmentos relevantes: "
-                                         + "; ".join(f.cita() for f in reglas),
-                    "reglas_citadas": [f.id for f in reglas], "llm_modelo": "", "llm_error": str(e)[:300]}
+            # El LLM cayó: la respuesta es un texto determinista que cita los fragmentos, sin afirmación que
+            # verificar. Se resuelven las páginas de las citas igual, para no mostrar una página equivocada.
+            citas = self.guardas.resolver_citas("", [f.id for f in reglas], consulta)
+            respuesta = ("No pude redactar la respuesta. Artículos relevantes: "
+                         + "; ".join(guardas_respuesta.formatear_cita(c) for c in citas))
+            return {**base, "respuesta": respuesta, "reglas_citadas": [f.id for f in reglas], "llm_modelo": "",
+                    "llm_error": str(e)[:300], "estado": guardas_respuesta.ESTADO_PUBLICAR, "motivo": "fallo_llm",
+                    "reservas": [], "citas": citas}
+
+        # Guardas deterministas (C6): el LLM propone, el corpus decide. Se revisa contra la consulta
+        # reformulada (autónoma), que es la que dice de verdad qué se está preguntando.
+        g = self.guardas.revisar(respuesta, citas_ids, consulta)
+        return {**base, "respuesta": g.respuesta, "llm_modelo": r.modelo, "llm_error": "",
+                "reglas_citadas": citas_ids, "estado": g.estado, "motivo": g.motivo,
+                "reservas": g.reservas, "citas": g.citas,
+                "cifras_sin_grounding": g.cifras_sin_grounding}

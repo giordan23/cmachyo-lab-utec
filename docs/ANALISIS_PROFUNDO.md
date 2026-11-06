@@ -97,7 +97,7 @@ El pedido de la segunda iteración fue que el asesor converse con el RAG y que, 
 | Suite de pruebas | **132 pruebas pasan** (Python 3.10) [MEDIDO] |
 | Pruebas de mutación | **39/39 mutaciones detectadas** (v1: 13 guardas, 3 del agente, 3 de la API, 1 de la base, 2 del router, 1 del LLM; v2: 16 del chat, privacidad y migración). La primera corrida dejó viva la del `UPDATE` atómico; se agregó `tests/test_db.py`, que la detecta. También se verificó la mutación `>`→`>=` del ejercicio 1 [MEDIDO] |
 | Simulación del alumno | Guía compilada seguida en orden, en una carpeta con espacios y "ñ". Todos los pasos OK; solo fallan, como se espera, los dos comandos que exigen claves reales [MEDIDO] |
-| Router `hash` sobre el set de oro | 62% (15/24) con umbral 0.30. El barrido da un máximo de 71% con 0.40 [MEDIDO]. Es la línea base léxica |
+| Router `hash` sobre el set de oro | 62% (15/24) con umbral 0.30 y máximo de 71% con 0.40 [MEDIDO] sobre el set anterior de evaluación crediticia. Es un resultado histórico; no corresponde al set actual de benchmarking |
 | Router Jev / embeddings de OpenAI | **No medido** (sin claves). Es el primer resultado que deben producir los alumnos |
 | Docker Compose | app healthy, target `lab06` UP, 23 consultas PromQL sin error y con datos tras la carga (incluidas las del chat) [MEDIDO] |
 | Recorrido en el navegador | Asesor → pendiente (sin propuesta visible) → analista (422 sin comentario) → aprobada → el asesor la ve por sondeo [MEDIDO] |
@@ -157,7 +157,7 @@ El pedido de la segunda iteración fue que el asesor converse con el RAG y que, 
 - **v2 · Reformulación:** si el LLM reescribe mal una pregunta de seguimiento, el RAG busca otra cosa. El chat muestra "Busqué en el manual: …" para que el asesor lo note; no hay verificación automática. Con `mock`, la "reformulación" es una regla fija (concatenar la pregunta anterior si el mensaje tiene menos de 6 palabras): no es representativa de un LLM real.
 - **v2 · Router `hash` en el chat:** en la carga de prueba enrutó "¿Y si es dependiente?" a `evaluacion_credito`. Es un error léxico esperable (el router `hash` no usa contexto); con Jev y el historial debería ir a `consulta_producto`. No medido con Jev.
 
-- **Calibración optimista:** el set de oro tiene 24 frases escritas por el autor. Las preguntas de asesores reales tendrán errores de tipeo, jerga y mezcla de intenciones ("¿califica y qué documentos trae?").
+- **Calibración optimista:** el set actual de router tiene 36 frases de benchmarking escritas manualmente; no sustituye consultas reales con errores de tipeo, jerga o mezcla de intenciones.
 - **Ruta mixta:** una pregunta que es consulta y evaluación a la vez se fuerza a una sola ruta. Una alternativa es usar varias preguntas `noul` de Jev (una por intención) en vez de un `choice`.
 - **Sesgo de automatización:** una tasa de acuerdo agente/analista cercana al 100% puede significar que el humano aprueba sin revisar. El tablero la muestra; el control (muestreo de revisión) no está implementado.
 - **Deriva del modelo:** `jev-latest` y el modelo de OpenAI pueden cambiar. Se guarda la versión que respondió en cada solicitud, pero no hay una alerta por cambio de versión.
