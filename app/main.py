@@ -1,10 +1,10 @@
-"""API del proyecto de benchmarking bancario.
+"""API del asistente de información sobre ahorros de Caja Huancayo.
 
-    GET  /                             interfaz del chat benchmarking
-    POST /api/chat                     consulta al chat de benchmarking
+    GET  /                             interfaz del chat
+    POST /api/chat                     consulta al chat con RAG
     POST /api/chat/nueva               nueva conversación
     GET  /api/chat/{id}?desde=N        mensajes nuevos de una conversación
-    POST /api/solicitudes              consulta directa (compatibilidad)
+    POST /api/solicitudes              consulta directa (compatibilidad con pruebas de integración)
     GET  /api/solicitudes/{id}         detalle de una respuesta
     GET  /metrics  ·  GET /health
 """
@@ -31,8 +31,8 @@ from app.modelos import MensajeChat, Solicitud
 from app.rag import RAG
 from app.router import crear_router
 
-MENSAJE_DERIVACION = ("Esta consulta no corresponde al benchmarking de Banco A vs Banco B. Puedes consultar tasas, "
-                      "comisiones, ITF o diferencias entre ambos bancos.")
+MENSAJE_DERIVACION = ("Esta consulta no corresponde a productos o condiciones de ahorro de Caja Huancayo. "
+                      "Puedes preguntar por cuentas, plazos, requisitos, tasas o condiciones documentadas.")
 
 
 @dataclass
@@ -74,14 +74,14 @@ def construir_servicios(settings: Settings | None = None) -> Servicios:
                      Repositorio(settings.db_path))
 
 
-def vista_asesor(f: dict) -> dict:
-    """Vista simplificada para el chat de benchmarking."""
+def vista_consulta(f: dict) -> dict:
+    """Vista simplificada para el chat del asistente informativo."""
     r = f["resultado"]
     base = {"id": f["id"], "estado": f["estado"], "ruta": f["ruta"],
             "router": {k: f["enrutamiento"].get(k) for k in ("proveedor", "confianza", "modelo", "bajo_umbral")}}
     if f["estado"] == "RESPONDIDA":
         return {**base, "respuesta": r["respuesta"], "citas": [x for x in r.get("reglas", []) if x["id"] in r.get("reglas_citadas", [])]}
-    return {**base, "respuesta": r.get("respuesta", "Consulta atendida en el contexto de benchmarking.")}
+    return {**base, "respuesta": r.get("respuesta", "Consulta atendida en el contexto de ahorro de Caja Huancayo.")}
 
 
 def create_app(servicios: Servicios | None = None) -> FastAPI:
@@ -92,13 +92,13 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
         metricas.COLA_PENDIENTE.set(app.state.s.repo.contar_pendientes())
         yield
 
-    app = FastAPI(title="Benchmarking bancario", lifespan=lifespan)
+    app = FastAPI(title="Caja Huancayo | Asistente de ahorro", lifespan=lifespan)
 
     def svc(request: Request) -> Servicios:
         return request.app.state.s
 
     @app.get("/", include_in_schema=False)
-    def pagina_asesor():
+    def pagina_principal():
         return FileResponse(WEB_DIR / "index.html")
 
     @app.get("/health")
@@ -111,22 +111,24 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
 
     @app.post("/api/solicitudes")
     def crear_solicitud(sol: Solicitud, s: Servicios = Depends(svc)):
+        """Endpoint de compatibilidad usado en pruebas de integración. Recibe Solicitud (formulario ficticio)
+        y responde con la consulta RAG sobre ahorros; no evalúa riesgo crediticio."""
         ruta = s.router.enrutar(sol.pregunta)
         if ruta.inyeccion is not None and ruta.inyeccion >= s.settings.inyeccion_umbral:
             metricas.INYECCION.inc()
         metricas.SOLICITUDES.labels(ruta.ruta).inc()
-        if ruta.ruta in {"consulta_producto", "consulta_benchmark"}:
+        if ruta.ruta in {"consulta_ahorros", "consulta_producto", "consulta_benchmark"}:
             estado, resultado = "RESPONDIDA", s.agente.responder_consulta(sol.pregunta)
         else:
             estado, resultado = "DERIVADA", {"respuesta": MENSAJE_DERIVACION}
         id_ = s.repo.crear(estado, ruta.ruta, sol.model_dump(), ruta.como_dict(), resultado)
         metricas.COLA_PENDIENTE.set(s.repo.contar_pendientes())
-        return vista_asesor(s.repo.obtener(id_))
+        return vista_consulta(s.repo.obtener(id_))
 
     @app.get("/api/solicitudes/{id_}")
     def ver_solicitud(id_: int, s: Servicios = Depends(svc)):
         try:
-            return vista_asesor(s.repo.obtener(id_))
+            return vista_consulta(s.repo.obtener(id_))
         except NoExiste:
             raise HTTPException(404, f"No existe la solicitud {id_}") from None
 

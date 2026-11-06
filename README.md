@@ -1,49 +1,46 @@
-# Benchmarking bancario con RAG y chat conversacional
+# Asistente de información sobre ahorros de Caja Huancayo
 
-Proyecto académico orientado a comparar condiciones de dos bancos a partir de un documento PDF de benchmarking. El sistema lee el PDF, segmenta el contenido en unidades lógicas, crea un índice vectorial persistente y responde preguntas naturales con citas a los fragmentos recuperados.
+Este repositorio contiene un prototipo académico de búsqueda y conversación con RAG orientado a responder preguntas sobre productos y condiciones de ahorro de Caja Huancayo a partir de los documentos documentados por el usuario. La aplicación indexa el contenido, recupera citas relevantes y responde con evidencias sobre el material fuente sin inventar información no documentada.
 
-El flujo actual está adaptado a la comparación entre Banco A y Banco B, y no incluye evaluación crediticia ni escalado a analista, porque el objetivo del proyecto es analizar el documento de benchmarking y comparar tasas, comisiones, ITF y condiciones operativas.
+El proyecto no es un asesor de crédito, no evalúa riesgo ni ofrece aprobación o rechazo, ni compara bancos ficticios. Su alcance se limita a la información de ahorro y condiciones que se encuentre en los documentos cargados.
 
 ## Objetivo del proyecto
 
 Responder consultas del tipo:
 
-- ¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?
-- Compara las tasas de tarjeta de crédito entre ambos bancos.
-- ¿Cuál banco tiene mejores condiciones para un depósito a plazo?
-- Analiza la diferencia de comisiones e ITF entre Banco A y Banco B.
+- ¿Qué información existe sobre cuentas de ahorro de Caja Huancayo?
+- ¿Qué requisitos o condiciones se mencionan para un depósito a plazo?
+- ¿Qué se sabe sobre ahorro programado, requisitos o beneficios documentados?
+- ¿Dónde aparece en los documentos una condición o producto específico?
 
 ## Arquitectura
 
-El proyecto sigue el patrón básico del laboratorio:
-
-1. Ingesta del PDF
+1. Ingesta del documento
    - app/ingesta.py
-   - extrae el texto completo del PDF con pypdf
-   - segmenta por sección o artículo
-   - guarda metadatos como id, título, página y texto
-   - serializa el índice en data/indice.npz
+   - extrae texto del documento base con pypdf
+   - segmenta por artículo o sección
+   - persiste metadatos y crea el índice vectorial en data/indice.npz
 
 2. Embeddings y base vectorial
    - app/embeddings.py
-   - usa un embedder configurado (openai o hash para modo local sin clave)
-   - normaliza vectores y persiste el índice para uso posterior
+   - usa un proveedor configurado (OpenAI o hash para entorno local)
+   - normaliza y almacena los vectores para recuperación posterior
 
 3. Recuperación RAG
    - app/rag.py
-   - recupera los fragmentos más relevantes usando top-k y umbral
-   - presenta citas con artículo, título y página
-   - responde con “no hay contexto suficiente” cuando no hay evidencia
+   - consulta los fragmentos más relevantes con top-k y umbral
+   - muestra citas con id, título y página cuando el documento las incluye
+   - responde con evidencia o con una indicación clara de falta de contexto
 
 4. Chat conversacional
    - app/conversacion.py
-   - mantiene historial acotado y reformula preguntas de seguimiento
-   - la interfaz web consulta el backend vía /api/chat
+   - conserva el historial útil y reformula preguntas de seguimiento
+   - la interfaz web consulta al backend con streaming y citas
 
 5. Enrutamiento y agente
    - app/router.py
-   - decide si la consulta es de benchmarking o si no corresponde al documento
-   - app/agente_riesgo.py genera la respuesta con contexto y citas
+   - decide si la consulta entra en el alcance del proyecto
+   - app/agente_riesgo.py genera la respuesta con contexto y fuentes
 
 6. Observabilidad y pruebas
    - app/metricas.py
@@ -54,13 +51,13 @@ El proyecto sigue el patrón básico del laboratorio:
 
 ```text
 app/            lógica principal: ingest, embeddings, RAG, router, chat, LLM, API
-rules/          política y generación del PDF (aunque el proyecto actual se enfoca en benchmarking)
-data/          Benchmarking.pdf, rutas.json, índice generado, SQLite si aplica
+rules/          reglas y utilidades complementarias del proyecto
+data/          documentos fuente, rutas, índice generado, SQLite y otros artefactos
 web/            interfaz del chat (HTML/JS)
-tests/          pruebas automáticas de ingest, RAG y validación de flujo
-scripts/        scripts de normalización y verificación de entorno
-Dockerfile      contenedor de la aplicación
+tests/          pruebas de ingest, RAG, chat y validación del flujo
+scripts/        scripts de entorno y verificación
 docker-compose.yml
+Dockerfile
 requirements*.txt
 README.md
 ```
@@ -69,8 +66,8 @@ README.md
 
 - Python 3.10+
 - pip
-- opcionalmente: OpenAI API key para embeddings/LLM reales
-- para modo local y sin costo: usar EMBEDDINGS_PROVIDER=hash y LLM_PROVIDER=mock
+- clave de OpenAI opcional para embeddings/LLM reales
+- para entorno local sin costo: usar EMBEDDINGS_PROVIDER=hash y LLM_PROVIDER=mock
 
 ## Configuración
 
@@ -86,7 +83,6 @@ Variables relevantes:
 EMBEDDINGS_PROVIDER=hash
 LLM_PROVIDER=mock
 ROUTER_PROVIDER=hash
-ANALISTA_TOKEN=token-demo
 ```
 
 Si quieres usar OpenAI real:
@@ -97,7 +93,7 @@ LLM_PROVIDER=openai
 OPENAI_API_KEY=tu_clave
 ```
 
-Nota: con OpenAI real, el uso depende de cuota disponible. Para una demo estable sin costo, usa hash + mock.
+Nota: con OpenAI real, el uso depende de cuota disponible. Para un prototipo local estable, usa hash + mock.
 
 ## Inicio rápido
 
@@ -117,38 +113,22 @@ Luego abre:
 
 - http://127.0.0.1:8000/
 
-## Demo de uso
-
-Ejemplos de consultas válidas para el benchmarking:
+## Ejemplos de consultas válidas
 
 ```text
-¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?
-Compara las tasas de tarjeta de crédito entre Banco A y Banco B.
-¿Cuál banco tiene mejores condiciones para un depósito a plazo?
-Analiza la diferencia de comisiones e ITF entre ambos bancos.
-¿Que tan favorable es Banco B frente a Banco A en ahorro programado?
+¿Qué productos de ahorro ofrece Caja Huancayo según los documentos?
+¿En qué condiciones se menciona un depósito a plazo?
+¿Cuáles son los requisitos para una cuenta de ahorro?
+¿Hay información documentada sobre ahorro programado o ahorro para jóvenes?
 ```
-
-## Validación por rúbrica
-
-| Criterio | Estado | Evidencia |
-|---|---|---|
-| C1 Ingesta del PDF | Cumplido | app/ingesta.py, tests/test_rag.py |
-| C2 Base vectorial y embeddings | Cumplido | app/embeddings.py, app/ingesta.py, app/rag.py |
-| C3 Recuperación RAG y citas | Cumplido | app/rag.py, app/agente_riesgo.py |
-| C4 Chat conversacional | Cumplido | app/conversacion.py, web/index.html |
-| C5 Comunicación con el agente | Cumplido | app/router.py, app/main.py |
-| C6 Seguridad, privacidad y guardas | Cumplido | app/privacidad.py, app/config.py |
-| C7 Pruebas, evaluación y observabilidad | Cumplido | tests/, app/metricas.py |
-| C8 Documentación y sustentación | Cumplido | este README documenta arquitectura, uso y alcance |
 
 ## Limitaciones conocidas
 
-- El documento de benchmarking es la fuente de verdad; no se usa un analista humano ni evaluación crediticia, porque el objetivo del proyecto no es aprobar clientes.
-- El sistema es sensible a la calidad del PDF: si el archivo cambia de formato, puede requerir ajuste del parser.
+- El sistema responde con base en los documentos indexados; si el contenido no incluye la respuesta, la respuesta debe indicar falta de evidencia.
+- No se debe asumir información oficial que no aparezca en los materiales cargados.
 - OpenAI real requiere cuota disponible y puede fallar por limitación de presupuesto.
-- La versión sin clave usa hash para pruebas y demostración local; no reemplaza un modelo semántico profesional.
+- La versión sin clave usa hash para pruebas locales y no reemplaza un modelo semántico profesional.
 
 ## Conclusión
 
-Este proyecto demuestra una arquitectura completa de RAG aplicada a un caso realista de benchmarking financiero: ingestión del PDF, segmentación lógica, base vectorial, recuperación con citas, chat conversacional y validación automática. Es una solución sólida para comparar condiciones entre Banco A y Banco B con evidencias extraídas del documento base.
+Este proyecto demuestra un flujo completo de RAG para un asistente documental financiero: ingesta de documentos, segmentación, base vectorial, recuperación con citas, chat conversacional y respuestas basadas en evidencias. El objetivo es servir como prototipo informativo sobre productos y condiciones de ahorro de Caja Huancayo, sin presentar recomendaciones personales ni decisiones crediticias.

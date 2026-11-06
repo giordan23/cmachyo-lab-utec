@@ -41,8 +41,8 @@ def test_jev_nunca_recibe_el_dni(monkeypatch):
 
     def servidor(request):
         enviado.append(request.content.decode())
-        return httpx.Response(200, json={"model": "jev-1.13.0", "answers": {"ruta": {"choice": "evaluacion_credito",
-                                         "probabilities": {"evaluacion_credito": 0.9, "consulta_producto": 0.05, "fuera_de_alcance": 0.05}}}})
+        return httpx.Response(200, json={"model": "jev-1.13.0", "answers": {"ruta": {"choice": "consulta_ahorros",
+                                         "probabilities": {"consulta_ahorros": 0.9, "fuera_de_alcance": 0.1}}}})
     monkeypatch.setenv("TYPESAFE_API_KEY", "ts-x")
     JevRouter(Settings(), cargar_rutas(), transport=httpx.MockTransport(servidor)).enrutar(
         "¿califica 40123456?", historial=["mi cliente 41234567, cel 987654321"])

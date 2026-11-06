@@ -1,11 +1,13 @@
-"""Paso 5: PDF → texto → fragmentos (un artículo por fragmento) → embeddings → data/indice.npz
+"""Ingesta de documentos: PDF → texto → fragmentos → embeddings → data/indice.npz
 
 Uso:   python -m app.ingesta            (re-indexa siempre)
        python -m app.ingesta --si-falta (solo si no hay índice o es de otro embedder; lo usa Docker al arrancar)
 
-¿Por qué un fragmento por ARTÍCULO y no cada N caracteres? Porque las reglas tienen límites naturales: si cortamos a
-mitad de un artículo, el LLM recibe "no puede superar el" sin el número. Cortar por estructura conserva el sentido y
-además da una cita exacta (artículo + página) para mostrar al analista.
+¿Por qué un fragmento por ARTÍCULO o SECCIÓN y no cada N caracteres? Porque los documentos suelen tener límites
+naturales: si cortamos a mitad de una sección, el LLM recibe texto incompleto. Cortar por estructura conserva el
+sentido y además da una cita exacta (sección + página) para mostrar al usuario.
+
+Cuando el PDF no tiene estructura de artículos numéricos, el extractor cae a un único fragmento con todo el texto.
 """
 from __future__ import annotations
 

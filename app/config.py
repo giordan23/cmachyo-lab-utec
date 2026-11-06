@@ -60,7 +60,7 @@ class Settings:
         self.jev_model = _txt("JEV_MODEL", "jev-latest")
         self.jev_timeout_s = _num("JEV_TIMEOUT_S", 15)
         self.router_min_confidence = _num("ROUTER_MIN_CONFIDENCE", 0.55)   # Jev: por debajo → fuera_de_alcance
-        self.router_min_score = _num("ROUTER_MIN_SCORE", 0.30)             # router por embeddings (respaldo)
+        self.router_min_score = _num("ROUTER_MIN_SCORE", 0.52)             # router por embeddings (respaldo); umbral semántico mínimo
         self.inyeccion_umbral = _num("INYECCION_UMBRAL", 0.8)              # Jev: probabilidad para marcar un mensaje
 
         # --- OpenAI --------------------------------------------------------------------------------------------
@@ -74,8 +74,7 @@ class Settings:
         # --- RAG -----------------------------------------------------------------------------------------------
         self.rag_top_k = int(_num("RAG_TOP_K", 4))
         self.rag_min_score = _num("RAG_MIN_SCORE", 0.25)
-        ## CAMBIAR PDF
-        self.pdf_path = Path(_txt("PDF_PATH") or DATA_DIR / "Benchmarking.pdf")
+        self.pdf_path = Path(_txt("PDF_PATH") or DATA_DIR / "documentos_caja_huancayo.pdf")
         self.indice_path = Path(_txt("INDICE_PATH") or DATA_DIR / "indice.npz")
 
         # --- aplicación ----------------------------------------------------------------------------------------

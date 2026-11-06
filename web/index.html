@@ -3,316 +3,640 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asesor de ventas · Lab 06</title>
+<title>Asistente de Ahorros</title>
 <style>
-  :root {
-    --bg: #fff7f7;
-    --panel: #ffffff;
-    --panel-soft: #fff1f1;
-    --line: #f3d3d3;
-    --text: #1f1f1f;
-    --muted: #7d5a5a;
-    --accent: #ef4444;
-    --accent-strong: #dc2626;
-    --accent-soft: #fee2e2;
-    --shadow: rgba(239, 68, 68, 0.12);
-  }
+/* ── Tokens ───────────────────────────────────────────────────────── */
+:root {
+  --rojo:         #b42318;
+  --rojo-hover:   #971e14;
+  --rojo-suave:   #fdf1f0;
+  --rojo-borde:   #edcbc8;
+  --neutro-50:    #fafaf9;
+  --neutro-100:   #f4f2f1;
+  --neutro-200:   #e9e5e3;
+  --neutro-400:   #a8998f;
+  --neutro-700:   #4a3f3a;
+  --neutro-900:   #1c1715;
+  --panel:        #ffffff;
+  --sombra-xs:    0 1px 2px rgba(28,23,21,.06);
+  --sombra-sm:    0 2px 8px rgba(28,23,21,.08);
+  --radio:        14px;
+  --radio-sm:     9px;
+}
 
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0;
-    font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: linear-gradient(180deg, var(--bg) 0%, #fff 100%);
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-  }
+/* ── Reset ───────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font: 15px/1.65 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--neutro-100);
+  color: var(--neutro-900);
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
 
-  header {
-    background: linear-gradient(135deg, #ffffff 0%, #fff3f3 100%);
-    border-bottom: 1px solid var(--line);
-    color: var(--text);
-    padding: 14px 18px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
-  }
-  header b { color: var(--accent-strong); }
-  header .sp { flex: 1; }
-  header small { color: var(--muted); }
+/* ── Cabecera ────────────────────────────────────────────────────── */
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--neutro-200);
+  height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
 
-  main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 18px 16px;
-    background: radial-gradient(circle at top, rgba(239,68,68,0.03), transparent 45%);
-  }
+.hd-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hd-ojo {
+  width: 28px;
+  height: 28px;
+  background: var(--rojo);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hd-ojo svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.hd-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutro-900);
+  letter-spacing: 0.01em;
+}
 
-  .chat {
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+.sep { flex: 1; }
 
-  .m {
-    max-width: 80%;
-    padding: 12px 14px;
-    border-radius: 18px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-  }
+.btn-nueva {
+  height: 34px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid var(--neutro-200);
+  border-radius: var(--radio-sm);
+  color: var(--neutro-700);
+  font: 13px/1 "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.btn-nueva svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.btn-nueva:hover { border-color: var(--neutro-400); background: var(--neutro-50); }
+.btn-nueva:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
 
-  .asesor {
-    align-self: flex-end;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-    color: #fff;
-    border-bottom-right-radius: 6px;
-  }
-  .asistente {
-    align-self: flex-start;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-bottom-left-radius: 6px;
-  }
-  .sistema {
-    align-self: center;
-    background: var(--panel-soft);
-    border: 1px solid var(--line);
-    font-size: 14px;
-    max-width: 92%;
-    border-radius: 14px;
-  }
+/* ── Main ────────────────────────────────────────────────────────── */
+main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 16px 20px;
+  scroll-behavior: smooth;
+}
 
-  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; white-space: normal; }
-  .asesor .meta { color: rgba(255,255,255,0.85); }
+.chat {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  details { margin-top: 6px; font-size: 13px; white-space: normal; }
-  summary { cursor: pointer; color: var(--accent-strong); font-weight: 600; }
-  .cita { border-left: 3px solid var(--accent); padding: 6px 10px; margin: 8px 0; background: #fff5f5; }
-  .alerta { color: var(--accent-strong); font-weight: 600; }
+/* ── Pantalla de inicio ──────────────────────────────────────────── */
+.inicio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 56px 20px 36px;
+}
+.inicio-icon {
+  width: 56px;
+  height: 56px;
+  background: var(--rojo-suave);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inicio-icon svg { width: 26px; height: 26px; fill: none; stroke: var(--rojo); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
-  .vacio {
-    color: var(--muted);
-    text-align: center;
-    margin-top: 42px;
-    font-size: 15px;
-  }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 14px;
-  }
+.inicio h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--neutro-900);
+  line-height: 1.3;
+}
+.inicio-desc {
+  font-size: 14.5px;
+  color: var(--neutro-400);
+  max-width: 440px;
+  line-height: 1.6;
+}
+.inicio-aviso {
+  font-size: 12px;
+  color: var(--neutro-400);
+  background: var(--neutro-100);
+  border: 1px solid var(--neutro-200);
+  border-radius: var(--radio-sm);
+  padding: 8px 16px;
+  max-width: 440px;
+}
 
-  footer {
-    border-top: 1px solid var(--line);
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
-    padding: 12px 16px;
-  }
-  .barra {
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    gap: 8px;
-  }
-  .barra textarea {
-    flex: 1;
-    resize: none;
-    height: 48px;
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    font: inherit;
-    background: #fff;
-    color: var(--text);
-    outline: none;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-  }
-  .barra textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-soft);
-  }
+.sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 580px;
+  margin-top: 4px;
+}
+.sugerencia {
+  background: var(--panel);
+  border: 1px solid var(--neutro-200);
+  border-radius: 20px;
+  color: var(--neutro-700);
+  font: 13px/1 "Inter", system-ui, sans-serif;
+  padding: 8px 15px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.sugerencia:hover { border-color: var(--rojo-borde); background: var(--rojo-suave); color: var(--rojo-hover); }
+.sugerencia:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
 
-  button {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-    color: #fff;
-    border: 0;
-    border-radius: 12px;
-    padding: 0 18px;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 48px;
-    box-shadow: 0 8px 18px var(--shadow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  button:hover { transform: translateY(-1px); }
-  button.sec {
-    background: #fff;
-    border: 1px solid var(--line);
-    color: var(--text);
-    box-shadow: none;
-    font-weight: 600;
-  }
-  button:disabled { opacity: .55; cursor: wait; }
+/* ── Burbujas ───────────────────────────────────────────────────── */
+.m {
+  max-width: min(74%, 640px);
+  padding: 13px 17px;
+  border-radius: var(--radio);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14.5px;
+  line-height: 1.65;
+}
 
-  .escribiendo { color: var(--muted); font-style: italic; }
+/* Usuario (derecha) */
+.usuario {
+  align-self: flex-end;
+  background: var(--rojo);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  box-shadow: var(--sombra-xs);
+}
+
+/* Asistente (izquierda) */
+.asistente {
+  align-self: flex-start;
+  background: var(--panel);
+  border: 1px solid var(--neutro-200);
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--sombra-xs);
+}
+
+/* Sistema / aviso */
+.sistema {
+  align-self: center;
+  max-width: 86%;
+  background: var(--rojo-suave);
+  border: 1px solid var(--rojo-borde);
+  border-radius: var(--radio-sm);
+  font-size: 13.5px;
+  color: var(--rojo-hover);
+}
+
+/* ── Meta (ruta, citas, reformulación) ──────────────────────────── */
+.meta {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--neutro-400);
+  white-space: normal;
+}
+.meta-ruta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+}
+.meta-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--neutro-200);
+  flex-shrink: 0;
+}
+.meta-consulta { font-style: italic; font-size: 12px; }
+
+/* Alerta inyección */
+.alerta-inj {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff8e6;
+  border: 1px solid #f0d882;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: #7a5900;
+  font-weight: 500;
+}
+
+/* ── Citas ──────────────────────────────────────────────────────── */
+details { margin-top: 10px; }
+summary {
+  cursor: pointer;
+  color: var(--rojo);
+  font-size: 12.5px;
+  font-weight: 600;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: "▸";
+  font-size: 11px;
+  transition: transform .15s;
+  display: inline-block;
+}
+details[open] summary::before { transform: rotate(90deg); }
+
+.cita {
+  margin-top: 8px;
+  padding: 10px 13px;
+  border-left: 3px solid var(--rojo);
+  background: var(--neutro-50);
+  border-radius: 0 var(--radio-sm) var(--radio-sm) 0;
+  font-size: 13px;
+}
+.cita-cabecera { font-weight: 600; color: var(--rojo-hover); margin-bottom: 2px; }
+.cita-ref { font-size: 11px; color: var(--neutro-400); margin-bottom: 5px; }
+.cita-cuerpo { color: var(--neutro-700); line-height: 1.55; }
+
+/* ── Indicador de escritura ─────────────────────────────────────── */
+.escribiendo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--neutro-400);
+  font-size: 13.5px;
+  font-style: italic;
+}
+.dots { display: flex; gap: 3px; }
+.dots span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--neutro-400);
+  animation: blink 1.3s infinite;
+}
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+
+/* ── Footer / barra de entrada ──────────────────────────────────── */
+footer {
+  background: var(--panel);
+  border-top: 1px solid var(--neutro-200);
+  padding: 12px 16px 14px;
+  flex-shrink: 0;
+}
+.barra {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.barra textarea {
+  flex: 1;
+  min-height: 48px;
+  max-height: 150px;
+  resize: vertical;
+  border: 1px solid var(--neutro-200);
+  border-radius: var(--radio);
+  background: var(--neutro-50);
+  color: var(--neutro-900);
+  font: 14.5px/1.55 "Inter", system-ui, sans-serif;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.barra textarea::placeholder { color: var(--neutro-400); }
+.barra textarea:focus {
+  border-color: var(--rojo);
+  background: var(--panel);
+  box-shadow: 0 0 0 3px rgba(180,35,24,.12);
+}
+.barra textarea:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
+
+.btn-enviar {
+  height: 48px;
+  min-width: 48px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radio);
+  background: var(--rojo);
+  color: #fff;
+  font: 600 14px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-shrink: 0;
+  transition: background .15s;
+  box-shadow: var(--sombra-sm);
+}
+.btn-enviar svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn-enviar:hover { background: var(--rojo-hover); }
+.btn-enviar:disabled { opacity: .5; cursor: wait; }
+.btn-enviar:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 580px) {
+  header { padding: 0 14px; }
+  .m { max-width: 92%; }
+  .barra { flex-direction: column; align-items: stretch; }
+  .btn-enviar { width: 100%; justify-content: center; }
+}
 </style>
 </head>
 <body>
+
+<!-- ── Header ────────────────────────────────────────────────────── -->
 <header>
-  <span>Benchmarking</span>
-  <span class="sp"></span>
-  <button class="sec" id="nueva">Nueva conversación</button>
+  <div class="hd-marca">
+    <div class="hd-ojo" aria-hidden="true">
+      <!-- Icono de documento/consulta -->
+      <svg viewBox="0 0 24 24"><path d="M9 12h6M9 16h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 7h6"/></svg>
+    </div>
+    <span class="hd-label">Consultor de ahorro</span>
+  </div>
+  <div class="sep"></div>
+  <button class="btn-nueva" id="nueva" type="button" aria-label="Nueva conversación">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    Nueva consulta
+  </button>
 </header>
-<main id="scroll"><div class="chat" id="chat"></div></main>
-<footer><div class="barra">
-  <textarea id="txt" placeholder="Ej.: ¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?" maxlength="1000"></textarea>
-  <button id="enviar">Enviar</button>
-</div></footer>
+
+<!-- ── Chat ──────────────────────────────────────────────────────── -->
+<main id="scroll" role="log" aria-live="polite" aria-label="Conversación">
+  <div class="chat" id="chat"></div>
+</main>
+
+<!-- ── Input ─────────────────────────────────────────────────────── -->
+<footer>
+  <div class="barra">
+    <textarea
+      id="txt"
+      placeholder="Consulta sobre productos, requisitos o condiciones de ahorro…"
+      maxlength="1000"
+      aria-label="Escribe tu consulta"
+      rows="2"
+    ></textarea>
+    <button class="btn-enviar" id="enviar" type="button" aria-label="Enviar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Enviar
+    </button>
+  </div>
+</footer>
 
 <script>
+/* ── Helpers ─────────────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const mem = { get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
-              set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
-const EJEMPLOS = ["¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?",
-                  "Compara las tasas de tarjeta de crédito entre Banco A y Banco B.",
-                  "¿Cuál banco tiene mejores condiciones para un depósito a plazo?",
-                  "Analiza la diferencia de comisiones e ITF entre ambos bancos.",
-                  "¿Qué tan favorable es Banco B frente a Banco A en ahorro programado?"];
-let conv = mem.get("lab06-conv") ? Number(mem.get("lab06-conv")) : null, ultimo = 0, sondeo = null, ultimaPregunta = "";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mem = {
+  get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch {} }
+};
 
-function citas(lista) {
-  if (!lista || !lista.length) return "";
-  return `<details><summary>${lista.length} artículo(s) del manual</summary>${lista.map(c =>
-    `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (pág. ${c.pagina})<br>${esc(c.texto)}</div>`).join("")}</details>`;
+/* ── Estado ──────────────────────────────────────────────────────── */
+let conv = mem.get("ch-conv") ? Number(mem.get("ch-conv")) : null;
+let ultimo = 0;
+let ultimaPregunta = "";
+
+const EJEMPLOS = [
+  "¿Qué información documentada existe sobre cuentas de ahorro?",
+  "¿Cuáles son los requisitos para un depósito a plazo?",
+  "¿Qué condiciones se mencionan para el ahorro programado?",
+  "¿Hay información sobre ahorro para jóvenes o ahorro voluntario?",
+  "¿Qué dice el documento sobre los requisitos para ahorrar?",
+];
+
+/* ── Citas ───────────────────────────────────────────────────────── */
+function renderCitas(lista) {
+  if (!lista?.length) return "";
+  const items = lista.map(c => `
+    <div class="cita">
+      <div class="cita-cabecera">${esc(c.titulo || "Fragmento")}</div>
+      <div class="cita-ref">Ref. ${esc(c.id || "—")} · Pág. ${esc(c.pagina ?? "—")}</div>
+      <div class="cita-cuerpo">${esc(c.texto || "")}</div>
+    </div>`).join("");
+  const n = lista.length;
+  return `<details><summary>${n} fuente${n > 1 ? "s" : ""} citada${n > 1 ? "s" : ""}</summary>${items}</details>`;
 }
 
-function pintar(m, enVivo = false) {
+/* ── Pintar mensaje ──────────────────────────────────────────────── */
+function pintar(m) {
   if (m.id <= ultimo) return;
   ultimo = m.id;
-  $("chat").querySelector(".vacio")?.remove();
-  const d = document.createElement("div"), meta = m.meta || {};
-  d.className = `m ${m.rol} ${meta.decision || ""}`;
+  $("chat").querySelector(".inicio")?.remove();
+
+  const div = document.createElement("div");
+  const meta = m.meta || {};
+  const rolCSS = (m.rol === "usuario" || m.rol === "asesor") ? "usuario"
+               : m.rol === "asistente" ? "asistente" : "sistema";
+
+  div.className = `m ${rolCSS}`;
+  div.setAttribute("role", "article");
+
   let h = esc(m.texto);
+
   if (m.rol === "asistente") {
     const r = meta.router || {};
-    if (meta.consulta && meta.consulta !== ultimaPregunta) h += `<div class="meta">Consulta de referencia: “${esc(meta.consulta)}”</div>`;
-    h += citas(meta.citas);
-    if (meta.inyeccion_sospechosa) h += `<div class="meta alerta">⚠ Este mensaje parece un intento de dar instrucciones al sistema. Quedó registrado.</div>`;
-    h += `<div class="meta">ruta ${esc(meta.ruta)} · ${esc(r.proveedor)} ${r.confianza != null ? "· confianza " + Number(r.confianza).toFixed(2) : ""}${r.respaldo ? " · respaldo" : ""}</div>`;
+    let metaHtml = "";
+
+    if (meta.consulta && meta.consulta !== ultimaPregunta) {
+      metaHtml += `<div class="meta-consulta">Búsqueda: "${esc(meta.consulta)}"</div>`;
+    }
+
+    const conf = r.confianza != null ? ` · confianza ${Number(r.confianza).toFixed(2)}` : "";
+    metaHtml += `<div class="meta-ruta"><span class="meta-dot" aria-hidden="true"></span>ruta: ${esc(meta.ruta)} · ${esc(r.proveedor || "—")}${esc(conf)}</div>`;
+
+    if (meta.inyeccion_sospechosa) {
+      metaHtml += `<div class="alerta-inj" role="alert">⚠ Posible intento de manipulación detectado.</div>`;
+    }
+
+    h += renderCitas(meta.citas);
+    h += `<div class="meta">${metaHtml}</div>`;
   }
-  if (m.rol === "sistema" && meta.decision) {
-    h += `<div class="meta">Resultado del análisis</div><p style="margin:6px 0 0">${esc(meta.justificacion)}</p>`;
-    h += citas(meta.citas);
-  }
-  if (m.rol === "asesor") ultimaPregunta = m.texto;
-  d.innerHTML = h;
-  $("chat").appendChild(d);
+
+  if (m.rol === "usuario" || m.rol === "asesor") ultimaPregunta = m.texto;
+  div.innerHTML = h;
+  $("chat").appendChild(div);
   $("scroll").scrollTop = $("scroll").scrollHeight;
 }
 
-function vacio() {
-  $("chat").innerHTML = `<div class="vacio">Compara tasas, comisiones y condiciones entre Banco A y Banco B.<div class="chips">${EJEMPLOS.map(e =>
-    `<button class="sec" type="button">${esc(e)}</button>`).join("")}</div></div>`;
-  $("chat").querySelectorAll(".chips button").forEach(b => b.onclick = () => { $("txt").value = b.textContent; $("txt").focus(); });
+/* ── Pantalla inicial ────────────────────────────────────────────── */
+function mostrarInicio() {
+  $("chat").innerHTML = `
+    <div class="inicio" role="complementary">
+      <div class="inicio-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      </div>
+      <h2>¿En qué puedo ayudarte?</h2>
+      <p class="inicio-desc">
+        Consulta productos, condiciones y requisitos documentados.<br>
+        Las respuestas se apoyan en las fuentes indexadas.
+      </p>
+      <p class="inicio-aviso" role="note">
+        Prototipo informativo · Las respuestas provienen exclusivamente de los documentos cargados.
+      </p>
+      <div class="sugerencias" role="list" aria-label="Ejemplos de consulta">
+        ${EJEMPLOS.map(e => `<button class="sugerencia" type="button" role="listitem">${esc(e)}</button>`).join("")}
+      </div>
+    </div>`;
+  $("chat").querySelectorAll(".sugerencia").forEach(b => {
+    b.onclick = () => { $("txt").value = b.textContent; $("txt").focus(); };
+  });
 }
 
-async function cargar() {                         // retoma la conversación si recargas la página
-  if (!conv) return vacio();
-  const r = await fetch(`/api/chat/${conv}?desde=${ultimo}`);
-  if (r.status === 404) { conv = null; mem.set("lab06-conv", null); return vacio(); }
-  const d = await r.json();
-  d.mensajes.forEach(pintar);
-  if (!d.mensajes.length && !ultimo) vacio();
-  vigilar();
+/* ── Cargar historial ────────────────────────────────────────────── */
+async function cargar() {
+  if (!conv) return mostrarInicio();
+  try {
+    const r = await fetch(`/api/chat/${conv}?desde=${ultimo}`);
+    if (r.status === 404) { conv = null; mem.set("ch-conv", null); return mostrarInicio(); }
+    const d = await r.json();
+    d.mensajes.forEach(pintar);
+    if (!d.mensajes.length && !ultimo) mostrarInicio();
+  } catch { mostrarInicio(); }
 }
 
-function vigilar() {                              // sondeo cada 3 s solo mientras hay una solicitud pendiente
-  const pendientes = [...document.querySelectorAll(".m.sistema")].filter(e => e.textContent.includes("enviada al analista")).length;
-  const decididas = [...document.querySelectorAll(".m.sistema.APROBADA, .m.sistema.RECHAZADA")].length;
-  if (pendientes > decididas && !sondeo) sondeo = setInterval(cargar, 3000);
-  if (pendientes <= decididas && sondeo) { clearInterval(sondeo); sondeo = null; }
-}
-
+/* ── Enviar + streaming ──────────────────────────────────────────── */
 async function enviar() {
   const texto = $("txt").value.trim();
   if (!texto) return;
-  $("enviar").disabled = true; $("txt").value = "";
-  const escribiendo = document.createElement("div"); escribiendo.className = "m asistente escribiendo"; escribiendo.textContent = "Analizando el benchmarking…";
-  $("chat").appendChild(escribiendo); $("scroll").scrollTop = $("scroll").scrollHeight;
+  $("enviar").disabled = true;
+  $("txt").value = "";
+  $("chat").querySelector(".inicio")?.remove();
+
+  // Burbuja del usuario (provisional)
+  const bUser = document.createElement("div");
+  bUser.className = "m usuario";
+  bUser.setAttribute("role", "article");
+  bUser.textContent = texto;
+  $("chat").appendChild(bUser);
+  $("scroll").scrollTop = $("scroll").scrollHeight;
+
+  // Indicador de escritura
+  const esc2 = document.createElement("div");
+  esc2.className = "m asistente escribiendo";
+  esc2.innerHTML = `Consultando los documentos… <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>`;
+  $("chat").appendChild(esc2);
+  $("scroll").scrollTop = $("scroll").scrollHeight;
+
   try {
-    const r = await fetch("/api/chat/stream", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({conversacion_id: conv, mensaje: texto})});
+    const r = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversacion_id: conv, mensaje: texto })
+    });
+
     if (!r.ok) {
-      const d = await r.json().catch(() => ({detail: "Error desconocido"}));
-      escribiendo.remove();
+      const err = await r.json().catch(() => ({ detail: "Error desconocido" }));
+      esc2.remove(); bUser.remove();
       $("txt").value = texto;
-      alert(`Error ${r.status}: ${JSON.stringify(d.detail)}`);
+      const av = document.createElement("div");
+      av.className = "m sistema";
+      av.textContent = `Error ${r.status}: ${typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail)}`;
+      $("chat").appendChild(av);
+      $("scroll").scrollTop = $("scroll").scrollHeight;
       return;
     }
+
     const reader = r.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let streamEl = null;
+    const dec = new TextDecoder();
+    let buf = "", streamEl = null;
 
     while (true) {
-      const {value, done} = await reader.read();
+      const { value, done } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, {stream: true});
-      const chunks = buffer.split("\n\n");
-      buffer = chunks.pop() || "";
-      for (const raw of chunks) {
-        const line = raw.trim();
-        if (!line.startsWith("data:")) continue;
-        const payload = JSON.parse(line.slice(5));
-        if (payload.type === "start") {
-          conv = payload.conversacion_id; mem.set("lab06-conv", String(conv));
-          continue;
-        }
-        if (payload.type === "chunk") {
+      buf += dec.decode(value, { stream: true });
+      const trozos = buf.split("\n\n");
+      buf = trozos.pop() || "";
+
+      for (const raw of trozos) {
+        const linea = raw.trim();
+        if (!linea.startsWith("data:")) continue;
+        let p; try { p = JSON.parse(linea.slice(5)); } catch { continue; }
+
+        if (p.type === "start") {
+          conv = p.conversacion_id;
+          mem.set("ch-conv", String(conv));
+        } else if (p.type === "chunk") {
           if (!streamEl) {
+            esc2.remove();
             streamEl = document.createElement("div");
             streamEl.className = "m asistente";
-            streamEl.dataset.stream = "1";
+            streamEl.setAttribute("role", "article");
             $("chat").appendChild(streamEl);
           }
-          const actual = (streamEl.dataset.text || "") + payload.delta;
+          const actual = (streamEl.dataset.text || "") + p.delta;
           streamEl.dataset.text = actual;
           streamEl.innerHTML = esc(actual);
           $("scroll").scrollTop = $("scroll").scrollHeight;
-          continue;
-        }
-        if (payload.type === "done") {
+        } else if (p.type === "done") {
           if (streamEl) streamEl.remove();
-          payload.mensajes.forEach(m => pintar(m, true));
-          if (payload.conversacion_id) {
-            conv = payload.conversacion_id; mem.set("lab06-conv", String(conv));
-          }
+          esc2.remove();
+          if (p.mensajes?.length) { bUser.remove(); p.mensajes.forEach(pintar); }
+          if (p.conversacion_id) { conv = p.conversacion_id; mem.set("ch-conv", String(conv)); }
           break;
         }
       }
     }
-  } catch (e) {
-    escribiendo.textContent = "No se pudo conectar con la API.";
+  } catch {
+    esc2.remove(); bUser.remove();
     $("txt").value = texto;
+    const av = document.createElement("div");
+    av.className = "m sistema";
+    av.textContent = "No se pudo conectar con el servicio. Verifica que el servidor esté en ejecución.";
+    $("chat").appendChild(av);
+    $("scroll").scrollTop = $("scroll").scrollHeight;
   } finally {
-    escribiendo.remove();
-    $("enviar").disabled = false; $("txt").focus();
+    $("enviar").disabled = false;
+    $("txt").focus();
   }
 }
 
+/* ── Eventos ─────────────────────────────────────────────────────── */
 $("enviar").onclick = enviar;
-$("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } });
-$("nueva").onclick = () => { conv = null; ultimo = 0; ultimaPregunta = ""; mem.set("lab06-conv", null); clearInterval(sondeo); sondeo = null; vacio(); };
+$("txt").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
+});
+$("nueva").onclick = () => {
+  conv = null; ultimo = 0; ultimaPregunta = "";
+  mem.set("ch-conv", null);
+  mostrarInicio();
+  $("txt").focus();
+};
+
 cargar();
 </script>
 </body>

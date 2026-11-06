@@ -5,11 +5,14 @@ de eventos de asyncio, así que no aparece el problema de ProactorEventLoop que 
 
 FastAPI ejecuta los endpoints `def` (no `async def`) en varios hilos; por eso una sola conexión protegida con un Lock.
 
-Estados:  RESPONDIDA | DERIVADA | PENDIENTE_ANALISTA → APROBADA | RECHAZADA
+Estados de solicitudes (tabla de compatibilidad): RESPONDIDA | DERIVADA | PENDIENTE_ANALISTA → APROBADA | RECHAZADA
+  (La tabla solicitudes se conserva por compatibilidad con las pruebas de integración; en el flujo activo del asistente
+  de ahorro se usan conversaciones y mensajes.)
 
-Conversaciones: cada chat del asesor es una fila en `conversaciones` y sus turnos van en `mensajes`
-(rol = asesor | asistente | sistema). Una solicitud escalada desde el chat guarda su `conversacion_id`: así el
-analista ve la conversación que la originó, y su decisión vuelve al chat como mensaje del sistema.
+Roles de mensaje: usuario | asistente | sistema
+  - usuario: consulta enviada desde la interfaz
+  - asistente: respuesta generada con RAG
+  - sistema: avisos internos del flujo
 """
 from __future__ import annotations
 
@@ -44,7 +47,7 @@ CREATE TABLE IF NOT EXISTS mensajes (
     creado_en       REAL NOT NULL,
     rol             TEXT NOT NULL,      -- asesor | asistente | sistema
     texto           TEXT NOT NULL,
-    meta            TEXT NOT NULL       -- JSON: ruta, citas, consulta reformulada, router, solicitud_id…
+    meta            TEXT NOT NULL       -- JSON: ruta, citas, consulta reformulada, router…
 );
 CREATE INDEX IF NOT EXISTS ix_mensajes ON mensajes(conversacion_id, id);
 """

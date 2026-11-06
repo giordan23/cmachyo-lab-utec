@@ -39,14 +39,15 @@ def rag(settings):
     return RAG(settings.indice_path, HashEmbedder(), settings.rag_min_score, settings.rag_top_k)
 
 
+# Solicitud ficticia usada en pruebas de guardas, herramientas y agente.
+# Corresponde al manual educativo ficticio de rules/politicas.py; no es un producto real de Caja Huancayo.
 SOLICITUD_SANA = {
     "dni": "40123456", "nombre": "Rosa Quispe", "edad": 35, "ingreso_mensual": 3500, "deuda_mensual": 400,
     "calificacion_sbs": "Normal", "antiguedad_meses": 24, "tipo_trabajador": "dependiente", "producto": "consumo",
-    "monto": 12000, "plazo_meses": 24, "pregunta": "¿Mi cliente califica para este crédito de consumo?",
+    "monto": 12000, "plazo_meses": 24, "pregunta": "¿Cuáles son los requisitos para este producto de ahorro?",
 }
 
 
 @pytest.fixture
 def sana():
     return dict(SOLICITUD_SANA)
-

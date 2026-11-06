@@ -1,5 +1,5 @@
-# Lab 06: app (FastAPI) + Prometheus + Grafana.
-# Usa los puertos 8000, 9090 y 3000: si tienes levantado el lab 04, primero ejecuta "docker compose down" en esa carpeta.
+# Prototipo de asistente documental sobre ahorro de Caja Huancayo.
+# Usa los puertos 8000, 9090 y 3000.
 services:
   app:
     build: .
