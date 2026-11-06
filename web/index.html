@@ -3,193 +3,565 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asesor de ventas · Lab 06</title>
+<title>Asistente de Ahorros</title>
 <style>
-  :root {
-    --bg: #fff7f7;
-    --panel: #ffffff;
-    --panel-soft: #fff1f1;
-    --line: #f3d3d3;
-    --text: #1f1f1f;
-    --muted: #7d5a5a;
-    --accent: #ef4444;
-    --accent-strong: #dc2626;
-    --accent-soft: #fee2e2;
-    --shadow: rgba(239, 68, 68, 0.12);
-  }
+/* ── Tokens ───────────────────────────────────────────────────────── */
+:root {
+  --rojo: #b42318;
+  --rojo-strong: #8f1f15;
+  --rojo-hover: #9d261b;
+  --rojo-suave: #fdf2f1;
+  --rojo-borde: #f1d1ce;
+  --neutro-50: #faf8f7;
+  --neutro-100: #f5f1f0;
+  --neutro-200: #ece5e2;
+  --neutro-400: #9b8d89;
+  --neutro-500: #786d69;
+  --neutro-700: #473d3a;
+  --neutro-900: #1b1716;
+  --panel: rgba(255, 255, 255, 0.94);
+  --panel-strong: #ffffff;
+  --bg: linear-gradient(180deg, #fffaf9 0%, #f7f2f1 100%);
+  --sombra-sm: 0 8px 24px rgba(35, 18, 14, 0.08);
+  --sombra-md: 0 16px 40px rgba(35, 18, 14, 0.08);
+  --radio: 22px;
+  --radio-sm: 14px;
+  --radio-xs: 10px;
+}
 
-  * { box-sizing: border-box; }
-  html, body { height: 100%; }
-  body {
-    margin: 0;
-    font: 15px/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: linear-gradient(180deg, var(--bg) 0%, #fff 100%);
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font: 15px/1.65 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--neutro-900);
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
 
-  header {
-    background: linear-gradient(135deg, #ffffff 0%, #fff3f3 100%);
-    border-bottom: 1px solid var(--line);
-    color: var(--text);
-    padding: 14px 18px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.02);
-  }
-  header b { color: var(--accent-strong); }
-  header .sp { flex: 1; }
-  header small { color: var(--muted); }
+.app-shell {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
 
-  main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 18px 16px;
-    background: radial-gradient(circle at top, rgba(239,68,68,0.03), transparent 45%);
-  }
+.sidebar {
+  width: 284px;
+  background: rgba(255, 255, 255, 0.68);
+  border-right: 1px solid rgba(57, 39, 34, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 18px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  .chat {
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+.sidebar-card {
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(57,39,34,0.06);
+  border-radius: 18px;
+  padding: 12px 12px 8px;
+  box-shadow: var(--sombra-sm);
+}
 
-  .m {
-    max-width: 80%;
-    padding: 12px 14px;
-    border-radius: 18px;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-  }
+.sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
 
-  .asesor {
-    align-self: flex-end;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-    color: #fff;
-    border-bottom-right-radius: 6px;
-  }
-  .asistente {
-    align-self: flex-start;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-bottom-left-radius: 6px;
-  }
-  .sistema {
-    align-self: center;
-    background: var(--panel-soft);
-    border: 1px solid var(--line);
-    font-size: 14px;
-    max-width: 92%;
-    border-radius: 14px;
-  }
+.sidebar-title {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neutro-500);
+  font-weight: 700;
+}
 
-  .meta { font-size: 12px; color: var(--muted); margin-top: 6px; white-space: normal; }
-  .asesor .meta { color: rgba(255,255,255,0.85); }
+.sidebar-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(180, 35, 24, 0.08);
+  color: var(--rojo);
+  font-size: 11px;
+  font-weight: 700;
+}
 
-  details { margin-top: 6px; font-size: 13px; white-space: normal; }
-  summary { cursor: pointer; color: var(--accent-strong); font-weight: 600; }
-  .cita { border-left: 3px solid var(--accent); padding: 6px 10px; margin: 8px 0; background: #fff5f5; }
-  .alerta { color: var(--accent-strong); font-weight: 600; }
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .vacio {
-    color: var(--muted);
-    text-align: center;
-    margin-top: 42px;
-    font-size: 15px;
-  }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 14px;
-  }
+.history-item {
+  width: 100%;
+  border: 1px solid rgba(57,39,34,0.06);
+  background: rgba(255,255,255,0.74);
+  color: var(--neutro-700);
+  border-radius: 12px;
+  text-align: left;
+  padding: 10px 10px;
+  font: 13px/1.45 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
 
-  footer {
-    border-top: 1px solid var(--line);
-    background: rgba(255,255,255,0.9);
-    backdrop-filter: blur(10px);
-    padding: 12px 16px;
-  }
-  .barra {
-    max-width: 860px;
-    margin: 0 auto;
-    display: flex;
-    gap: 8px;
-  }
-  .barra textarea {
-    flex: 1;
-    resize: none;
-    height: 48px;
-    padding: 12px 14px;
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    font: inherit;
-    background: #fff;
-    color: var(--text);
-    outline: none;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
-  }
-  .barra textarea:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-soft);
-  }
+.history-item:hover {
+  transform: translateX(2px);
+  background: linear-gradient(180deg, rgba(253,242,241,.9), rgba(255,255,255,.9));
+  border-color: rgba(180,35,24,.2);
+  box-shadow: 0 8px 18px rgba(180,35,24,.08);
+}
 
-  button {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-    color: #fff;
-    border: 0;
-    border-radius: 12px;
-    padding: 0 18px;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 48px;
-    box-shadow: 0 8px 18px var(--shadow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-  button:hover { transform: translateY(-1px); }
-  button.sec {
-    background: #fff;
-    border: 1px solid var(--line);
-    color: var(--text);
-    box-shadow: none;
-    font-weight: 600;
-  }
-  button:disabled { opacity: .55; cursor: wait; }
+.history-empty {
+  padding: 10px 8px 2px;
+  color: var(--neutro-400);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 
-  .escribiendo { color: var(--muted); font-style: italic; }
+header {
+  background: rgba(255,255,255,0.86);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(57, 39, 34, 0.08);
+  height: 60px;
+  padding: 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.hd-marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hd-ojo {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-strong) 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 18px rgba(180, 35, 24, 0.22);
+}
+.hd-ojo svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.hd-label {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--neutro-900);
+}
+
+.sep { flex: 1; }
+
+.btn-nueva {
+  height: 36px;
+  padding: 0 14px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(35,23,21,0.1);
+  border-radius: 12px;
+  color: var(--neutro-700);
+  font: 13px/1 "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  white-space: nowrap;
+}
+.btn-nueva svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.btn-nueva:hover {
+  transform: translateY(-1px);
+  border-color: rgba(180,35,24,.25);
+  background: rgba(253,242,241,.9);
+  box-shadow: 0 4px 10px rgba(180,35,24,.08);
+}
+.btn-nueva:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
+
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 16px 18px;
+  scroll-behavior: smooth;
+}
+
+.chat {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m,
+.inicio,
+.barra,
+.sidebar-card,
+.history-item {
+  animation: floatIn .22s ease;
+}
+
+@keyframes floatIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.inicio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 48px 22px 26px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(57, 39, 34, 0.06);
+  border-radius: 28px;
+  box-shadow: var(--sombra-sm);
+}
+.inicio-icon {
+  width: 62px;
+  height: 62px;
+  background: linear-gradient(135deg, var(--rojo-suave) 0%, #fff5f3 100%);
+  border: 1px solid rgba(180,35,24,.12);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inicio-icon svg { width: 28px; height: 28px; fill: none; stroke: var(--rojo); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.inicio h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--neutro-900);
+  line-height: 1.3;
+}
+.inicio-desc {
+  font-size: 14.5px;
+  color: var(--neutro-500);
+  max-width: 500px;
+  line-height: 1.6;
+}
+.inicio-aviso {
+  font-size: 12px;
+  color: var(--neutro-500);
+  background: rgba(255,255,255,0.65);
+  border: 1px solid rgba(35,23,21,0.08);
+  border-radius: 999px;
+  padding: 8px 16px;
+  max-width: 480px;
+}
+
+.sugerencias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 620px;
+  margin-top: 2px;
+}
+.sugerencia {
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(57, 39, 34, 0.08);
+  border-radius: 999px;
+  color: var(--neutro-700);
+  font: 13px/1 "Inter", system-ui, sans-serif;
+  padding: 9px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s ease;
+}
+.sugerencia:hover {
+  background: linear-gradient(180deg, rgba(253,242,241,.9), rgba(255,255,255,.9));
+  border-color: rgba(180,35,24,.2);
+  color: var(--rojo-hover);
+  box-shadow: 0 6px 18px rgba(180,35,24,.08);
+}
+.sugerencia:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
+
+.m {
+  max-width: min(74%, 660px);
+  padding: 14px 18px;
+  border-radius: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14.5px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+
+.usuario {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #c2271d 0%, #a81f17 100%);
+  color: #fff;
+  border-bottom-right-radius: 8px;
+  box-shadow: 0 12px 24px rgba(180,35,24,.2);
+}
+
+.asistente {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(57,39,34,0.08);
+  border-bottom-left-radius: 8px;
+  box-shadow: 0 6px 16px rgba(44, 28, 24, 0.08);
+}
+
+.sistema {
+  align-self: center;
+  max-width: 88%;
+  background: rgba(253,242,241,0.9);
+  border: 1px solid var(--rojo-borde);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--rojo-hover);
+}
+
+.meta {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--neutro-500);
+  white-space: normal;
+}
+.meta-ruta { display: flex; align-items: center; gap: 5px; font-size: 11.5px; }
+.meta-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--neutro-200);
+  flex-shrink: 0;
+}
+.meta-consulta { font-style: italic; font-size: 12px; }
+
+.alerta-inj {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff7dc;
+  border: 1px solid #f4de96;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  color: #7c5d03;
+  font-weight: 600;
+}
+
+details { margin-top: 10px; }
+summary {
+  cursor: pointer;
+  color: var(--rojo);
+  font-size: 12.5px;
+  font-weight: 700;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before {
+  content: "▸";
+  font-size: 11px;
+  transition: transform .15s;
+  display: inline-block;
+}
+details[open] summary::before { transform: rotate(90deg); }
+
+.cita {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--rojo);
+  background: linear-gradient(180deg, #fffaf9 0%, #f8f5f4 100%);
+  border-radius: 0 14px 14px 0;
+  font-size: 13px;
+}
+.cita-cabecera { font-weight: 700; color: var(--rojo-hover); margin-bottom: 2px; }
+.cita-ref { font-size: 11px; color: var(--neutro-400); margin-bottom: 5px; }
+.cita-cuerpo { color: var(--neutro-700); line-height: 1.55; }
+
+.escribiendo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--neutro-500);
+  font-size: 13px;
+  font-style: italic;
+}
+.dots { display: flex; gap: 3px; }
+.dots span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--neutro-400);
+  animation: blink 1.3s infinite;
+}
+.dots span:nth-child(2) { animation-delay: .2s; }
+.dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+
+footer {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(57, 39, 34, 0.08);
+  padding: 12px 16px 16px;
+  flex-shrink: 0;
+}
+.barra {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(57,39,34,0.08);
+  border-radius: 22px;
+  padding: 10px 10px 10px 14px;
+  box-shadow: var(--sombra-sm);
+}
+.barra textarea {
+  flex: 1;
+  min-height: 52px;
+  max-height: 160px;
+  resize: vertical;
+  border: none;
+  background: transparent;
+  color: var(--neutro-900);
+  font: 14.5px/1.6 "Inter", system-ui, sans-serif;
+  padding: 10px 8px;
+  outline: none;
+}
+.barra textarea::placeholder { color: var(--neutro-400); }
+.barra textarea:focus { box-shadow: none; }
+.barra textarea:focus-visible { outline: none; }
+
+.btn-enviar {
+  height: 48px;
+  min-width: 48px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-hover) 100%);
+  color: #fff;
+  font: 600 14px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex-shrink: 0;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  box-shadow: 0 10px 22px rgba(180,35,24,.22);
+}
+.btn-enviar svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn-enviar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(180,35,24,.24);
+}
+.btn-enviar:disabled { opacity: .6; cursor: wait; }
+.btn-enviar:focus-visible { outline: 2px solid var(--rojo); outline-offset: 2px; }
+
+@media (max-width: 580px) {
+  header { padding: 0 14px; }
+  .m { max-width: 92%; }
+  .barra { flex-direction: column; align-items: stretch; padding: 10px; }
+  .btn-enviar { width: 100%; justify-content: center; }
+}
 </style>
 </head>
 <body>
+
+<!-- ── Header ────────────────────────────────────────────────────── -->
 <header>
-  <span>Benchmarking</span>
-  <span class="sp"></span>
-  <button class="sec" id="nueva">Nueva conversación</button>
+  <div class="hd-marca">
+    <div class="hd-ojo" aria-hidden="true">
+      <!-- Icono de documento/consulta -->
+      <svg viewBox="0 0 24 24"><path d="M9 12h6M9 16h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 7h6"/></svg>
+    </div>
+    <span class="hd-label">Consultor de ahorro</span>
+  </div>
+  <div class="sep"></div>
+  <button class="btn-nueva" id="nueva" type="button" aria-label="Nueva conversación">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    Nueva consulta
+  </button>
 </header>
-<main id="scroll"><div class="chat" id="chat"></div></main>
-<footer><div class="barra">
-  <textarea id="txt" placeholder="Ej.: ¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?" maxlength="1000"></textarea>
-  <button id="enviar">Enviar</button>
-</div></footer>
+
+<!-- ── Chat ──────────────────────────────────────────────────────── -->
+<main id="scroll" role="log" aria-live="polite" aria-label="Conversación">
+  <div class="chat" id="chat"></div>
+</main>
+
+<!-- ── Input ─────────────────────────────────────────────────────── -->
+<footer>
+  <div class="barra">
+    <textarea
+      id="txt"
+      placeholder="Consulta sobre productos, requisitos o condiciones de ahorro…"
+      maxlength="1000"
+      aria-label="Escribe tu consulta"
+      rows="2"
+    ></textarea>
+    <button class="btn-enviar" id="enviar" type="button" aria-label="Enviar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Enviar
+    </button>
+  </div>
+</footer>
 
 <script>
+/* ── Helpers ─────────────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
-const mem = { get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
-              set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
-const EJEMPLOS = ["¿Qué diferencia hay entre Banco A y Banco B en ahorro en soles?",
-                  "Compara las tasas de tarjeta de crédito entre Banco A y Banco B.",
-                  "¿Cuál banco tiene mejores condiciones para un depósito a plazo?",
-                  "Analiza la diferencia de comisiones e ITF entre ambos bancos.",
-                  "¿Qué tan favorable es Banco B frente a Banco A en ahorro programado?"];
-let conv = mem.get("lab06-conv") ? Number(mem.get("lab06-conv")) : null, ultimo = 0, sondeo = null, ultimaPregunta = "";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mem = {
+  get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch {} }
+};
+
+const EJEMPLOS = [
+  "¿Qué requisitos tiene la apertura de una cuenta de ahorros?",
+  "¿Cuáles son las condiciones para modificar tasas o comisiones?",
+  "¿Qué pasa si el cliente no acepta una modificación del contrato?",
+  "¿Cómo se valida la contratación por canales digitales o virtuales?",
+  "¿Qué es la causal de cierre o cancelación del producto?",
+  "¿Qué obligaciones tiene el cliente ante cambios de apoderado o representación?"
+];
+
+let conv = mem.get("ch-conv");
+let ultimo = 0;
+let ultimaPregunta = "";
 
 const paginasDe = c => {
   const ps = (c.paginas && c.paginas.length) ? c.paginas : [c.pagina];
@@ -202,13 +574,22 @@ function citas(lista) {
     `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (${paginasDe(c)})<br>${esc(c.texto)}</div>`).join("")}</details>`;
 }
 
-function pintar(m, enVivo = false) {
+/* ── Pintar mensaje ──────────────────────────────────────────────── */
+function pintar(m) {
   if (m.id <= ultimo) return;
   ultimo = m.id;
-  $("chat").querySelector(".vacio")?.remove();
-  const d = document.createElement("div"), meta = m.meta || {};
-  d.className = `m ${m.rol} ${meta.decision || ""}`;
+  $("chat").querySelector(".inicio")?.remove();
+
+  const div = document.createElement("div");
+  const meta = m.meta || {};
+  const rolCSS = (m.rol === "usuario" || m.rol === "asesor") ? "usuario"
+               : m.rol === "asistente" ? "asistente" : "sistema";
+
+  div.className = `m ${rolCSS}`;
+  div.setAttribute("role", "article");
+
   let h = esc(m.texto);
+
   if (m.rol === "asistente") {
     const r = meta.router || {};
     if (meta.consulta && meta.consulta !== ultimaPregunta) h += `<div class="meta">Consulta de referencia: “${esc(meta.consulta)}”</div>`;
@@ -218,108 +599,157 @@ function pintar(m, enVivo = false) {
     if (meta.inyeccion_sospechosa) h += `<div class="meta alerta">⚠ Este mensaje parece un intento de dar instrucciones al sistema. Quedó registrado.</div>`;
     h += `<div class="meta">ruta ${esc(meta.ruta)} · ${esc(r.proveedor)} ${r.confianza != null ? "· confianza " + Number(r.confianza).toFixed(2) : ""}${r.respaldo ? " · respaldo" : ""}</div>`;
   }
-  if (m.rol === "sistema" && meta.decision) {
-    h += `<div class="meta">Resultado del análisis</div><p style="margin:6px 0 0">${esc(meta.justificacion)}</p>`;
-    h += citas(meta.citas);
-  }
-  if (m.rol === "asesor") ultimaPregunta = m.texto;
-  d.innerHTML = h;
-  $("chat").appendChild(d);
+
+  if (m.rol === "usuario" || m.rol === "asesor") ultimaPregunta = m.texto;
+  div.innerHTML = h;
+  $("chat").appendChild(div);
   $("scroll").scrollTop = $("scroll").scrollHeight;
 }
 
-function vacio() {
-  $("chat").innerHTML = `<div class="vacio">Compara tasas, comisiones y condiciones entre Banco A y Banco B.<div class="chips">${EJEMPLOS.map(e =>
-    `<button class="sec" type="button">${esc(e)}</button>`).join("")}</div></div>`;
-  $("chat").querySelectorAll(".chips button").forEach(b => b.onclick = () => { $("txt").value = b.textContent; $("txt").focus(); });
+/* ── Pantalla inicial ────────────────────────────────────────────── */
+function mostrarInicio() {
+  $("chat").innerHTML = `
+    <div class="inicio" role="complementary">
+      <div class="inicio-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      </div>
+      <h2>¿En qué puedo ayudarte?</h2>
+      <p class="inicio-desc">
+        Consulta productos, condiciones y requisitos documentados.<br>
+        Las respuestas se apoyan en las fuentes indexadas.
+      </p>
+      <p class="inicio-aviso" role="note">
+        Prototipo informativo · Las respuestas provienen exclusivamente de los documentos cargados.
+      </p>
+      <div class="sugerencias" role="list" aria-label="Ejemplos de consulta">
+        ${EJEMPLOS.map(e => `<button class="sugerencia" type="button" role="listitem">${esc(e)}</button>`).join("")}
+      </div>
+    </div>`;
+  $("chat").querySelectorAll(".sugerencia").forEach(b => {
+    b.onclick = () => { $("txt").value = b.textContent; $("txt").focus(); };
+  });
 }
 
-async function cargar() {                         // retoma la conversación si recargas la página
-  if (!conv) return vacio();
-  const r = await fetch(`/api/chat/${conv}?desde=${ultimo}`);
-  if (r.status === 404) { conv = null; mem.set("lab06-conv", null); return vacio(); }
-  const d = await r.json();
-  d.mensajes.forEach(pintar);
-  if (!d.mensajes.length && !ultimo) vacio();
-  vigilar();
+/* ── Cargar historial ────────────────────────────────────────────── */
+async function cargar() {
+  if (!conv) return mostrarInicio();
+  try {
+    const r = await fetch(`/api/chat/${conv}?desde=${ultimo}`);
+    if (r.status === 404) { conv = null; mem.set("ch-conv", null); return mostrarInicio(); }
+    const d = await r.json();
+    d.mensajes.forEach(pintar);
+    if (!d.mensajes.length && !ultimo) mostrarInicio();
+  } catch { mostrarInicio(); }
 }
 
-function vigilar() {                              // sondeo cada 3 s solo mientras hay una solicitud pendiente
-  const pendientes = [...document.querySelectorAll(".m.sistema")].filter(e => e.textContent.includes("enviada al analista")).length;
-  const decididas = [...document.querySelectorAll(".m.sistema.APROBADA, .m.sistema.RECHAZADA")].length;
-  if (pendientes > decididas && !sondeo) sondeo = setInterval(cargar, 3000);
-  if (pendientes <= decididas && sondeo) { clearInterval(sondeo); sondeo = null; }
-}
-
+/* ── Enviar + streaming ──────────────────────────────────────────── */
 async function enviar() {
   const texto = $("txt").value.trim();
   if (!texto) return;
-  $("enviar").disabled = true; $("txt").value = "";
-  const escribiendo = document.createElement("div"); escribiendo.className = "m asistente escribiendo"; escribiendo.textContent = "Analizando el benchmarking…";
-  $("chat").appendChild(escribiendo); $("scroll").scrollTop = $("scroll").scrollHeight;
+  $("enviar").disabled = true;
+  $("txt").value = "";
+  $("chat").querySelector(".inicio")?.remove();
+
+  // Burbuja del usuario (provisional)
+  const bUser = document.createElement("div");
+  bUser.className = "m usuario";
+  bUser.setAttribute("role", "article");
+  bUser.textContent = texto;
+  $("chat").appendChild(bUser);
+  $("scroll").scrollTop = $("scroll").scrollHeight;
+
+  // Indicador de escritura
+  const esc2 = document.createElement("div");
+  esc2.className = "m asistente escribiendo";
+  esc2.innerHTML = `Consultando los documentos… <span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>`;
+  $("chat").appendChild(esc2);
+  $("scroll").scrollTop = $("scroll").scrollHeight;
+
   try {
-    const r = await fetch("/api/chat/stream", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({conversacion_id: conv, mensaje: texto})});
+    const r = await fetch("/api/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversacion_id: conv, mensaje: texto })
+    });
+
     if (!r.ok) {
-      const d = await r.json().catch(() => ({detail: "Error desconocido"}));
-      escribiendo.remove();
+      const err = await r.json().catch(() => ({ detail: "Error desconocido" }));
+      esc2.remove(); bUser.remove();
       $("txt").value = texto;
-      alert(`Error ${r.status}: ${JSON.stringify(d.detail)}`);
+      const av = document.createElement("div");
+      av.className = "m sistema";
+      av.textContent = `Error ${r.status}: ${typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail)}`;
+      $("chat").appendChild(av);
+      $("scroll").scrollTop = $("scroll").scrollHeight;
       return;
     }
+
     const reader = r.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let streamEl = null;
+    const dec = new TextDecoder();
+    let buf = "", streamEl = null;
 
     while (true) {
-      const {value, done} = await reader.read();
+      const { value, done } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, {stream: true});
-      const chunks = buffer.split("\n\n");
-      buffer = chunks.pop() || "";
-      for (const raw of chunks) {
-        const line = raw.trim();
-        if (!line.startsWith("data:")) continue;
-        const payload = JSON.parse(line.slice(5));
-        if (payload.type === "start") {
-          conv = payload.conversacion_id; mem.set("lab06-conv", String(conv));
-          continue;
-        }
-        if (payload.type === "chunk") {
+      buf += dec.decode(value, { stream: true });
+      const trozos = buf.split("\n\n");
+      buf = trozos.pop() || "";
+
+      for (const raw of trozos) {
+        const linea = raw.trim();
+        if (!linea.startsWith("data:")) continue;
+        let p; try { p = JSON.parse(linea.slice(5)); } catch { continue; }
+
+        if (p.type === "start") {
+          conv = p.conversacion_id;
+          mem.set("ch-conv", String(conv));
+        } else if (p.type === "chunk") {
           if (!streamEl) {
+            esc2.remove();
             streamEl = document.createElement("div");
             streamEl.className = "m asistente";
-            streamEl.dataset.stream = "1";
+            streamEl.setAttribute("role", "article");
             $("chat").appendChild(streamEl);
           }
-          const actual = (streamEl.dataset.text || "") + payload.delta;
+          const actual = (streamEl.dataset.text || "") + p.delta;
           streamEl.dataset.text = actual;
           streamEl.innerHTML = esc(actual);
           $("scroll").scrollTop = $("scroll").scrollHeight;
-          continue;
-        }
-        if (payload.type === "done") {
+        } else if (p.type === "done") {
           if (streamEl) streamEl.remove();
-          payload.mensajes.forEach(m => pintar(m, true));
-          if (payload.conversacion_id) {
-            conv = payload.conversacion_id; mem.set("lab06-conv", String(conv));
-          }
+          esc2.remove();
+          if (p.mensajes?.length) { bUser.remove(); p.mensajes.forEach(pintar); }
+          if (p.conversacion_id) { conv = p.conversacion_id; mem.set("ch-conv", String(conv)); }
           break;
         }
       }
     }
-  } catch (e) {
-    escribiendo.textContent = "No se pudo conectar con la API.";
+  } catch {
+    esc2.remove(); bUser.remove();
     $("txt").value = texto;
+    const av = document.createElement("div");
+    av.className = "m sistema";
+    av.textContent = "No se pudo conectar con el servicio. Verifica que el servidor esté en ejecución.";
+    $("chat").appendChild(av);
+    $("scroll").scrollTop = $("scroll").scrollHeight;
   } finally {
-    escribiendo.remove();
-    $("enviar").disabled = false; $("txt").focus();
+    $("enviar").disabled = false;
+    $("txt").focus();
   }
 }
 
+/* ── Eventos ─────────────────────────────────────────────────────── */
 $("enviar").onclick = enviar;
-$("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } });
-$("nueva").onclick = () => { conv = null; ultimo = 0; ultimaPregunta = ""; mem.set("lab06-conv", null); clearInterval(sondeo); sondeo = null; vacio(); };
+$("txt").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); }
+});
+$("nueva").onclick = () => {
+  conv = null; ultimo = 0; ultimaPregunta = "";
+  mem.set("ch-conv", null);
+  mostrarInicio();
+  $("txt").focus();
+};
+
 cargar();
 </script>
 </body>

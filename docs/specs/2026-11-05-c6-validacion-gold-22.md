@@ -117,7 +117,7 @@ Implementación recomendada: al construir la cita, localizar el literal citado e
 
 1. **Guarda G2 (grounding numérico):** viable sin falsos positivos sobre el gold set. 22/22 limpias.
 2. **Guarda de reserva:** determinista a partir de la columna citada (tarifario compartido vs. supuesto ficticio). Cubre 17/22 casos de forma automática, sin modelo.
-3. **Abstención:** reutilizar el texto determinista ya escrito en el gold (`tcea-prestamo`, `tasa-cts-banco-a`, `agencia-horario`) y el `SIN_CONTEXTO` existente en `app/agente_riesgo.py:47-49`.
+3. **Abstención:** reutilizar el texto determinista ya escrito en el gold (`tcea-prestamo`, `tasa-cts-banco-a`, `agencia-horario`) y el `SIN_CONTEXTO` existente en `app/agente_ahorro.py:47-49`.
 4. **Guarda de cita:** nueva, corrige el 27 % de casos mal citados.
 5. **Humano en el circuito:** fuera de la ruta del set de oro; solo en generalizaciones semánticas. Debe medirse con un conjunto propio de casos adversarios, no con `rag_gold.json`.
 

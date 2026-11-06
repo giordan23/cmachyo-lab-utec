@@ -1,26 +1,45 @@
 {
-  "consulta_benchmark": {
-    "descripcion": "Pregunta de comparación entre Banco A y Banco B usando el documento de benchmarking.",
-    "criterio": "The user asks for a comparison between Bank A and Bank B based on the benchmarking document: passive operations, active operations, fees, commissions, rates, deposits, withdrawals, deposits and other financial conditions. This is factual analysis, not a client risk assessment.",
+  "consulta_ahorros": {
+    "descripcion": "Pregunta sobre productos, requisitos, condiciones, plazos, tasas, cierre, cuentas o servicios documentados de ahorro y depósitos de Caja Huancayo.",
+    "criterio": "The user asks about Caja Huancayo deposits, savings accounts, account opening requirements, conditions, modifications, deadlines, penalties, closure reasons, representation, or service conditions described in the current contract document. This must be answered only using the indexed source text and not by inventing official data.",
     "ejemplos": [
-      "¿Qué diferencia hay entre el ahorro en soles del Banco A y el Banco B?",
-      "Compara el costo de la tarjeta de crédito entre Banco A y Banco B.",
-      "¿Cuál banco tiene mejores condiciones para un depósito a plazo?",
-      "Analiza la diferencia de costos de comisiones entre Banco A y Banco B.",
-      "¿Qué tan favorable es el Banco B frente al Banco A en ahorro programado?",
-      "Compara las tasas de crédito activo entre Banco A y Banco B."
+      "¿Qué información hay sobre cuentas de ahorro de Caja Huancayo?",
+      "¿Cuáles son los requisitos documentados para abrir una cuenta de ahorros?",
+      "¿Qué condiciones se mencionan para el ahorro programado y los depósitos a plazo?",
+      "¿Qué dice el contrato sobre la apertura de cuentas, la autorización digital y la aceptación virtual?",
+      "¿Qué requisitos documentados tiene EL CLIENTE para formalizar su cuenta o servicio?",
+      "¿Qué plazos, penalidades o causales de cierre menciona el manual?",
+      "¿Qué condiciones se aplican si se modifican tasas, comisiones o servicios?",
+      "¿Qué obligaciones tiene el cliente si hay cambios de apoderado o representación?",
+      "¿Qué forma de cierre, cancelación o resolución del contrato se menciona?",
+      "¿Qué dice el documento sobre la administración del saldo, la apertura de cuentas y la vigencia del contrato?",
+      "¿Cuáles son las causales de bloqueo, cancelación o supplantación de la tarjeta o cuenta?",
+      "¿Qué condiciones se describen para los abonos, la cuenta a plazo fijo y la cartilla de información?",
+      "¿Qué información hay sobre la vigencia o la resolución de los productos de ahorro y depósito?"
     ]
   },
   "fuera_de_alcance": {
-    "descripcion": "Cualquier pregunta ajena al benchmarking bancario o a la comparación entre Banco A y Banco B.",
-    "criterio": "Anything unrelated to the benchmarking document or comparisons of Bank A vs Bank B: complaints, HR, IT support, opening hours, jokes or unrelated business questions.",
+    "descripcion": "Cualquier pregunta ajena al contrato y a los productos, requisitos, condiciones, plazos, tasas y servicios de ahorro y depósitos de Caja Huancayo documentados.",
+    "criterio": "Anything unrelated to the indexed materials about Caja Huancayo deposit, account, savings, requirements, service conditions, penalties, closure rules, or official account-opening questions. This excludes geographic questions, credit decisions, personal financial advice, technical support, unrelated personal requests, jokes, and questions outside the documented savings products and contract terms.",
     "ejemplos": [
       "¿A qué hora cierra la agencia?",
       "Mi computadora no prende",
       "¿Cuándo me pagan la gratificación?",
       "Cuéntame un chiste",
       "Necesito ayuda con un reclamo",
-      "¿Cómo cambio mi contraseña del correo?"
+      "¿Cómo cambio mi contraseña del correo?",
+      "¿Dónde queda Huancayo?",
+      "¿Cuál es la capital del Perú?",
+      "¿Qué hora es?",
+      "¿Cuánto cuesta el dólar hoy?",
+      "Hola, ¿cómo estás?",
+      "¿Cuántos empleados tiene el banco?",
+      "Ayúdame con mi tarea de matemáticas",
+      "¿Puedes hablar en inglés?",
+      "¿Qué es el Bitcoin?",
+      "¿Me puedes indicar si aprobo un préstamo?",
+      "¿Cómo puedo cancelar una deuda?",
+      "¿Qué puedo hacer con una tarjeta de crédito?"
     ]
   }
 }

@@ -1,12 +1,15 @@
 """OpenAILLM contra un servidor SIMULADO: el SDK oficial de OpenAI hace la petición real y parsea la respuesta, solo que
-la red la reemplaza httpx2.MockTransport (el SDK openai >= 2 usa httpx2). Así probamos NUESTRO código con el SDK de verdad."""
+la red la reemplaza httpx2.MockTransport (el SDK openai >= 2 usa httpx2). Así probamos NUESTRO código con el SDK de verdad.
+
+Las pruebas de evaluar() verifican la protección contra prompt injection y la validación de citas; usan el manual ficticio
+de rules/politicas.py exclusivamente. No corresponden a un flujo activo del asistente de ahorro de Caja Huancayo."""
 import json
 
 import httpx2
 import pytest
 from openai import OpenAI
 
-from app.agente_riesgo import SIN_CONTEXTO, AgenteRiesgo
+from app.agente_ahorro import SIN_CONTEXTO, AgenteRiesgo
 from app.config import Settings
 from app.llm import ESQUEMA_DICTAMEN, LLMError, MockLLM, OpenAILLM, RespuestaLLM
 from app.modelos import Solicitud

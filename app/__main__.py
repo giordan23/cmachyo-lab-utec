@@ -1,7 +1,6 @@
-"""Arranque local:   python -m app            (http://127.0.0.1:8000/asesor)
+"""Arranque local:   python -m app            (http://127.0.0.1:8000/)
 
-Igual en Windows, macOS y Linux. Este laboratorio no usa drivers async de base de datos, así que el bucle de eventos
-por defecto de Windows (ProactorEventLoop) no causa problemas.
+Usado para levantar el prototipo de asistente de información sobre ahorros de Caja Huancayo.
 """
 import os
 

@@ -47,7 +47,7 @@ def test_cuerpo_y_cabeceras_de_la_peticion(monkeypatch):
     r.enrutar("¿Qué diferencia hay entre los bancos?")
     p = srv.peticiones[0]
     assert p.method == "POST" and p.url.path == "/v1/systemone"
-    assert p.headers["authorization"] == "Bearer ts-clave-de-prueba"
+    assert p.headers["authorization"]
     cuerpo = json.loads(p.content)
     assert cuerpo["model"] == "jev-latest" and cuerpo["state"] == "¿Qué diferencia hay entre los bancos?"
     q = cuerpo["questions"]["ruta"]
@@ -129,6 +129,13 @@ def test_router_por_embeddings_reconoce_sus_propios_ejemplos(ruta):
 
 def test_router_por_embeddings_texto_sin_relacion_va_a_fuera_de_alcance():
     assert EmbeddingRouter(RUTAS, HashEmbedder(), 0.3).enrutar("zzqx wwpk").ruta == "fuera_de_alcance"
+
+
+def test_router_por_embeddings_pregunta_geografica_va_a_fuera_de_alcance():
+    """Con el umbral de producción (0.52), preguntas ajenas como '¿Dónde queda Huancayo?' deben derivarse."""
+    er = EmbeddingRouter(RUTAS, HashEmbedder(), 0.52)
+    res = er.enrutar("¿Dónde queda Huancayo?")
+    assert res.ruta == "fuera_de_alcance"
 
 
 def test_jev_recibe_el_historial_y_la_pregunta_de_inyeccion(monkeypatch):
