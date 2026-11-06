@@ -9,7 +9,7 @@ import httpx2
 import pytest
 from openai import OpenAI
 
-from app.agente_riesgo import SIN_CONTEXTO, AgenteRiesgo
+from app.agente_ahorro import SIN_CONTEXTO, AgenteRiesgo
 from app.config import Settings
 from app.llm import ESQUEMA_DICTAMEN, LLMError, MockLLM, OpenAILLM, RespuestaLLM
 from app.modelos import Solicitud

@@ -17,7 +17,7 @@ Documentos relacionados:
 
 | Pieza de C6 | Estado | Dónde |
 |---|---|---|
-| **Guardas deterministas sobre el LLM** | ✅ **Implementada en el flujo vivo** | `app/guardas_respuesta.py` (nuevo), `app/agente_riesgo.py:144-167` |
+| **Guardas deterministas sobre el LLM** | ✅ **Implementada en el flujo vivo** | `app/guardas_respuesta.py` (nuevo), `app/agente_ahorro.py:144-167` |
 | Enmascarado de datos personales | 🟡 Parcial (lo heredado: email/RUC/teléfono/DNI) | `app/privacidad.py` — **fuera de este trabajo** |
 | Protección contra prompt injection | 🔴 Solo la marca de Jev (heredada) | `app/router.py:149-152` — **fuera de este trabajo** |
 | Humano en el circuito | 🔴 Eliminado en el pivote (`2f8eee7`) | andamiaje vivo en `app/db.py:119-139` — **fuera de este trabajo** |
@@ -121,9 +121,9 @@ se publica con reserva mientras `tcea-prestamo` (que pide la TCEA) se abstiene.
 | Archivo | Cambio |
 |---|---|
 | `app/guardas_respuesta.py` | **Nuevo.** Módulo completo, sin dependencias del modelo. |
-| `app/agente_riesgo.py:65-76` | `AgenteRiesgo(rag, llm, pdf_path=None)`; propiedad `guardas` (se construye una vez). El tercer argumento es opcional: no rompe las llamadas existentes. |
-| `app/agente_riesgo.py:144-167` | `responder_consulta()` devuelve además `estado`, `motivo`, `reservas`, `citas` y `cifras_sin_grounding`; si las guardas abstienen, la respuesta que sale es el texto determinista, no la del modelo. |
-| `app/agente_riesgo.py:153-161` | Si el LLM falla, la respuesta es un texto determinista que cita los fragmentos: se marcan `PUBLICAR` / `fallo_llm` y **se resuelven igual las páginas** para no mostrar una página equivocada. |
+| `app/agente_ahorro.py:65-76` | `AgenteRiesgo(rag, llm, pdf_path=None)`; propiedad `guardas` (se construye una vez). El tercer argumento es opcional: no rompe las llamadas existentes. |
+| `app/agente_ahorro.py:144-167` | `responder_consulta()` devuelve además `estado`, `motivo`, `reservas`, `citas` y `cifras_sin_grounding`; si las guardas abstienen, la respuesta que sale es el texto determinista, no la del modelo. |
+| `app/agente_ahorro.py:153-161` | Si el LLM falla, la respuesta es un texto determinista que cita los fragmentos: se marcan `PUBLICAR` / `fallo_llm` y **se resuelven igual las páginas** para no mostrar una página equivocada. |
 | `app/conversacion.py:46-52` | El `meta` del mensaje lleva `estado`, `motivo`, `reservas` y `citas` (con la página real). |
 | `app/main.py:73` | `AgenteRiesgo(rag, crear_llm(settings), settings.pdf_path)`: el PDF se lee para tener las páginas reales. |
 | `app/metricas.py:42-47, 80-83` | `lab06_guarda_respuesta_total{estado}`, `lab06_guarda_reservas_total{tipo}`, `lab06_guarda_cifras_sin_grounding_total`, `lab06_cita_pagina_corregida_total`. |

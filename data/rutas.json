@@ -1,23 +1,26 @@
 {
   "consulta_ahorros": {
-    "descripcion": "Pregunta sobre productos, requisitos, condiciones o información documentada de ahorro de Caja Huancayo.",
-    "criterio": "The user asks about savings products, terms, conditions, requirements or documented benefits of Caja Huancayo. The answer must be supported by the indexed source documents and must not invent official data.",
+    "descripcion": "Pregunta sobre productos, requisitos, condiciones, plazos, tasas, cierre, cuentas o servicios documentados de ahorro y depósitos de Caja Huancayo.",
+    "criterio": "The user asks about Caja Huancayo deposits, savings accounts, account opening requirements, conditions, modifications, deadlines, penalties, closure reasons, representation, or service conditions described in the current contract document. This must be answered only using the indexed source text and not by inventing official data.",
     "ejemplos": [
       "¿Qué información hay sobre cuentas de ahorro de Caja Huancayo?",
-      "¿Cuáles son los requisitos documentados para un depósito a plazo?",
-      "¿Qué condiciones se mencionan para el ahorro programado?",
-      "¿Hay datos en los documentos sobre cuentas para jóvenes o ahorro voluntario?",
-      "¿Qué condiciones generales menciona el material de Caja Huancayo para ahorro?",
-      "¿Qué tasa de interés tiene el depósito a plazo según el documento?",
-      "¿Cuál es el monto mínimo para abrir una cuenta de ahorros?",
-      "¿Qué beneficios se describen en el material para el ahorro programado?",
-      "¿Cuáles son los plazos disponibles según los documentos?",
-      "¿Qué dice el documento sobre los requisitos para ahorrar?"
+      "¿Cuáles son los requisitos documentados para abrir una cuenta de ahorros?",
+      "¿Qué condiciones se mencionan para el ahorro programado y los depósitos a plazo?",
+      "¿Qué dice el contrato sobre la apertura de cuentas, la autorización digital y la aceptación virtual?",
+      "¿Qué requisitos documentados tiene EL CLIENTE para formalizar su cuenta o servicio?",
+      "¿Qué plazos, penalidades o causales de cierre menciona el manual?",
+      "¿Qué condiciones se aplican si se modifican tasas, comisiones o servicios?",
+      "¿Qué obligaciones tiene el cliente si hay cambios de apoderado o representación?",
+      "¿Qué forma de cierre, cancelación o resolución del contrato se menciona?",
+      "¿Qué dice el documento sobre la administración del saldo, la apertura de cuentas y la vigencia del contrato?",
+      "¿Cuáles son las causales de bloqueo, cancelación o supplantación de la tarjeta o cuenta?",
+      "¿Qué condiciones se describen para los abonos, la cuenta a plazo fijo y la cartilla de información?",
+      "¿Qué información hay sobre la vigencia o la resolución de los productos de ahorro y depósito?"
     ]
   },
   "fuera_de_alcance": {
-    "descripcion": "Cualquier pregunta ajena a los documentos sobre ahorro y condiciones de Caja Huancayo.",
-    "criterio": "Anything unrelated to the indexed materials about Caja Huancayo savings products, conditions, requirements, or official informational questions. This excludes geographic questions, credit decisions, approvals, personal financial advice, jokes, technical questions, and unrelated personal requests.",
+    "descripcion": "Cualquier pregunta ajena al contrato y a los productos, requisitos, condiciones, plazos, tasas y servicios de ahorro y depósitos de Caja Huancayo documentados.",
+    "criterio": "Anything unrelated to the indexed materials about Caja Huancayo deposit, account, savings, requirements, service conditions, penalties, closure rules, or official account-opening questions. This excludes geographic questions, credit decisions, personal financial advice, technical support, unrelated personal requests, jokes, and questions outside the documented savings products and contract terms.",
     "ejemplos": [
       "¿A qué hora cierra la agencia?",
       "Mi computadora no prende",
@@ -33,7 +36,10 @@
       "¿Cuántos empleados tiene el banco?",
       "Ayúdame con mi tarea de matemáticas",
       "¿Puedes hablar en inglés?",
-      "¿Qué es el Bitcoin?"
+      "¿Qué es el Bitcoin?",
+      "¿Me puedes indicar si aprobo un préstamo?",
+      "¿Cómo puedo cancelar una deuda?",
+      "¿Qué puedo hacer con una tarjeta de crédito?"
     ]
   }
 }

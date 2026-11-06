@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import metricas
-from app.agente_riesgo import AgenteRiesgo
+from app.agente_ahorro import AgenteRiesgo
 from app.db import Repositorio
 from app.llm import LLMError, MockLLM
 from app.main import Servicios, create_app

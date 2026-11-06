@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app import metricas
-from app.agente_riesgo import AgenteRiesgo
+from app.agente_ahorro import AgenteRiesgo
 from app.config import WEB_DIR, Settings
 from app.conversacion import Chat
 from app.db import NoExiste, Repositorio

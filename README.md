@@ -40,7 +40,7 @@ Responder consultas del tipo:
 5. Enrutamiento y agente
    - app/router.py
    - decide si la consulta entra en el alcance del proyecto
-   - app/agente_riesgo.py genera la respuesta con contexto y fuentes
+   - app/agente_ahorro.py genera la respuesta con contexto y fuentes
 
 6. Observabilidad y pruebas
    - app/metricas.py
@@ -128,7 +128,7 @@ Luego abre:
 |---|---|---|
 | C1 Ingesta del PDF | Cumplido | app/ingesta.py, tests/test_rag.py |
 | C2 Base vectorial y embeddings | Cumplido | app/embeddings.py, app/ingesta.py, app/rag.py |
-| C3 Recuperación RAG y citas | Cumplido | app/rag.py, app/agente_riesgo.py |
+| C3 Recuperación RAG y citas | Cumplido | app/rag.py, app/agente_ahorro.py |
 | C4 Chat conversacional | Cumplido | app/conversacion.py, web/index.html |
 | C5 Comunicación con el agente | Cumplido | app/router.py, app/main.py |
 | C6 Seguridad, privacidad y guardas | Cumplido | app/privacidad.py, app/config.py |
