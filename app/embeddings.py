@@ -63,6 +63,7 @@ class HashEmbedder:
 
 class OpenAIEmbedder:
     LOTE = 96
+    MAX_TOKENS = 8192 - 512
 
     def __init__(self, settings, client=None):
         from openai import OpenAI
@@ -73,14 +74,41 @@ class OpenAIEmbedder:
         self.precio = settings.precio_openai_embeddings
         self.client = client or OpenAI(api_key=settings.openai_api_key, timeout=settings.openai_timeout_s, max_retries=2)
 
+    def _contar_tokens(self, texto: str) -> int:
+        if self.modelo:
+            try:
+                import tiktoken
+                try:
+                    encoder = tiktoken.encoding_for_model(self.modelo)
+                except KeyError:
+                    encoder = tiktoken.get_encoding("cl100k_base")
+                return len(encoder.encode(texto))
+            except Exception:
+                pass
+        palabras = len(texto.split())
+        bytes_utf8 = len(texto.encode("utf-8"))
+        return max(1, max(palabras, bytes_utf8 // 3))
+
     def embed(self, textos: list[str]) -> np.ndarray:
         import openai
 
         filas = []
         for i in range(0, len(textos), self.LOTE):
+            lote = textos[i:i + self.LOTE]
+            entradas = []
+            for j, texto in enumerate(lote):
+                texto_mascarado = enmascarar(texto)
+                tokens = self._contar_tokens(texto_mascarado)
+                print(f"[embed] lote={i // self.LOTE} idx={i + j} modelo={self.modelo} tokens={tokens}", flush=True)
+                if tokens > self.MAX_TOKENS:
+                    raise EmbeddingError(
+                        f"OpenAI embeddings rechazó entrada {i + j} ({tokens} tokens > {self.MAX_TOKENS}). "
+                        "El fragmento supera el límite del modelo; vuelve a segmentar antes de llamar a la API."
+                    )
+                entradas.append(texto_mascarado)
             t0 = time.perf_counter()
             try:
-                r = self.client.embeddings.create(model=self.modelo, input=[enmascarar(t) for t in textos[i:i + self.LOTE]])
+                r = self.client.embeddings.create(model=self.modelo, input=entradas)
             except openai.APIError as e:
                 metricas.API_ERRORES.labels("openai_emb", type(e).__name__).inc()
                 raise EmbeddingError(f"OpenAI embeddings falló: {type(e).__name__}: {e}") from e

@@ -5,7 +5,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY web ./web
-COPY data/rutas.json data/Benchmarking.pdf ./data/
+COPY data ./data
 EXPOSE 8000
-# Al arrancar: indexa el PDF solo si falta el índice (o si cambiaste de embedder) y levanta la API.
+# Al arrancar: indexa el documento solo si falta el índice (o si cambiaste de embedder) y levanta la API.
 CMD ["sh", "-c", "python -m app.ingesta --si-falta && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

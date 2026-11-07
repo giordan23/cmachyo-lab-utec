@@ -1,6 +1,6 @@
-"""Chat de benchmarking bancario.
+"""Chat del asistente documental sobre ahorros y condiciones de Caja Huancayo.
 
-El usuario consulta directamente el documento y el sistema responde con contexto y citas.
+El usuario consulta documentos indexados y el sistema responde con contexto y citas.
 """
 from __future__ import annotations
 
@@ -8,8 +8,10 @@ from app import metricas
 from app.db import NoExiste
 
 HISTORIAL_MAX = 6          # mensajes previos que recibe el LLM: más contexto = más costo y más ruido
-DERIVAR = ("Esta consulta no corresponde a benchmarking"
-           ". Puedes preguntar sobre tasas, comisiones, ITF, depósitos o diferencias entre ambos bancos.")
+FUERA_DE_ALCANCE_CREDITICIO = ("Este prototipo está orientado a consultar productos y condiciones de ahorro de Caja Huancayo "
+                               "a partir de los documentos proporcionados. No brinda evaluación de crédito ni aprobaciones.")
+DERIVAR = ("Esta consulta no corresponde al alcance del prototipo de ahorro de Caja Huancayo. "
+           "Puedes preguntar por cuentas, requisitos, condiciones, plazos, tasas o productos documentados.")
 
 
 class Chat:
@@ -32,19 +34,20 @@ class Chat:
         else:
             self._validar(conversacion_id)
         previos = self.historial(conversacion_id)
-        nuevo = self.repo.agregar_mensaje(conversacion_id, "asesor", texto)
+        nuevo = self.repo.agregar_mensaje(conversacion_id, "usuario", texto)
 
-        ruta = self.router.enrutar(texto, [m["texto"] for m in previos if m["rol"] == "asesor"])
+        ruta = self.router.enrutar(texto, [m["texto"] for m in previos if m["rol"] == "usuario"])
         metricas.CHAT_MENSAJES.labels(ruta.ruta).inc()
         sospechoso = ruta.inyeccion is not None and ruta.inyeccion >= self.umbral_inyeccion
         if sospechoso:
             metricas.INYECCION.inc()
         meta = {"ruta": ruta.ruta, "router": ruta.como_dict(), "inyeccion_sospechosa": sospechoso, "accion": None}
 
-        if ruta.ruta == "consulta_benchmark":
+        if ruta.ruta in {"consulta_ahorros", "consulta_producto", "consulta_benchmark"}:
             r = self.agente.responder_consulta(texto, previos)
-            meta.update(consulta=r["consulta"], error=r["error"],
-                        citas=[x for x in r["fuentes"] if x["id"] in r["fuentes_citadas"]])
+            meta.update(consulta=r["consulta"], llm_error=r["llm_error"], estado=r.get("estado"),
+                        motivo=r.get("motivo"), reservas=r.get("reservas", []),
+                        citas=r.get("citas") or [x for x in r["reglas"] if x["id"] in r["reglas_citadas"]])
             respuesta = r["respuesta"]
         else:
             respuesta = DERIVAR

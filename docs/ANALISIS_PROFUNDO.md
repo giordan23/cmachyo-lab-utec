@@ -16,7 +16,7 @@ Etiquetas de evidencia:
 | Requisito | Implementación |
 |---|---|
 | 1. La primera pregunta es la del asesor de ventas | **v2:** chat (`web/asesor.html` + `app/conversacion.py`). Los datos del cliente se piden en un formulario dentro del chat solo cuando hay que evaluar (`app/modelos.py::Solicitud`, 12 campos validados) |
-| 2. RAG conectado a un agente especialista en análisis de riesgo (venta de productos del banco) | `app/agente_riesgo.py` + `app/rag.py` + `app/ingesta.py` |
+| 2. RAG conectado a un agente especialista en análisis de riesgo (venta de productos del banco) | `app/agente_ahorro.py` + `app/rag.py` + `app/ingesta.py` |
 | 3. Las reglas en PDF | `rules/politicas.py` → `rules/generar_pdf.py` → `data/politicas_riesgo.pdf` (3 páginas, 16 artículos) |
 | 4. Aprobación del analista en una web HTML simple | `web/analista.html` + `POST /api/solicitudes/{id}/decision` (token, comentario obligatorio, decisión atómica) |
 | 5. El agente responde al asesor usando el RAG | **v2:** RAG conversacional en el chat (historial + reformulación de preguntas de seguimiento), con artículos citados. Evaluación: justificación con citas + decisión humana que vuelve al chat |

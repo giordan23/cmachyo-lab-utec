@@ -1,32 +1,45 @@
 {
-  "consulta_benchmark": {
-    "descripcion": "Consulta sobre tasas, comisiones, depósitos y condiciones de Banco A y Banco B descritas en Benchmarking.pdf.",
-    "criterio": "Questions about facts in the supplied benchmarking PDF: savings and fixed-deposit rates, fees, commissions, ITF, banking conditions, or the document's illustrative credit-rate comparison. Do not make decisions about an individual customer's creditworthiness.",
+  "consulta_ahorros": {
+    "descripcion": "Pregunta sobre productos, requisitos, condiciones, plazos, tasas, cierre, cuentas o servicios documentados de ahorro y depósitos de Caja Huancayo.",
+    "criterio": "The user asks about Caja Huancayo deposits, savings accounts, account opening requirements, conditions, modifications, deadlines, penalties, closure reasons, representation, or service conditions described in the current contract document. This must be answered only using the indexed source text and not by inventing official data.",
     "ejemplos": [
-      "¿Qué diferencia hay entre el ahorro en soles del Banco A y el Banco B?",
-      "Compara las tasas de ahorro clásico en dólares.",
-      "¿Cuál es la TEA del préstamo personal que aparece en el documento?",
-      "¿Cuánto cuesta retirar en un cajero Global Net?",
-      "¿Qué información da el PDF sobre la TCEA?",
-      "¿Qué banco ofrece mayor incentivo en ahorro programado?",
-      "¿Cuál es la comisión por transferir a otros bancos?",
-      "¿Qué rendimiento ofrece un depósito fijo según el plazo elegido?",
-      "¿Qué ocurre al retirar el dinero de un depósito antes del vencimiento?",
-      "¿Cuánto cobran por las operaciones hechas en un agente Kasnet?",
-      "¿Qué cifras ilustrativas aparecen para financiar un vehículo?"
+      "¿Qué información hay sobre cuentas de ahorro de Caja Huancayo?",
+      "¿Cuáles son los requisitos documentados para abrir una cuenta de ahorros?",
+      "¿Qué condiciones se mencionan para el ahorro programado y los depósitos a plazo?",
+      "¿Qué dice el contrato sobre la apertura de cuentas, la autorización digital y la aceptación virtual?",
+      "¿Qué requisitos documentados tiene EL CLIENTE para formalizar su cuenta o servicio?",
+      "¿Qué plazos, penalidades o causales de cierre menciona el manual?",
+      "¿Qué condiciones se aplican si se modifican tasas, comisiones o servicios?",
+      "¿Qué obligaciones tiene el cliente si hay cambios de apoderado o representación?",
+      "¿Qué forma de cierre, cancelación o resolución del contrato se menciona?",
+      "¿Qué dice el documento sobre la administración del saldo, la apertura de cuentas y la vigencia del contrato?",
+      "¿Cuáles son las causales de bloqueo, cancelación o supplantación de la tarjeta o cuenta?",
+      "¿Qué condiciones se describen para los abonos, la cuenta a plazo fijo y la cartilla de información?",
+      "¿Qué información hay sobre la vigencia o la resolución de los productos de ahorro y depósito?"
     ]
   },
   "fuera_de_alcance": {
-    "descripcion": "Preguntas ajenas a la información contenida en los PDF.",
-    "criterio": "Questions unrelated to the supplied PDF, including complaints, HR, IT support, branch opening hours, or decisions and advice about an individual customer's credit application.",
+    "descripcion": "Cualquier pregunta ajena al contrato y a los productos, requisitos, condiciones, plazos, tasas y servicios de ahorro y depósitos de Caja Huancayo documentados.",
+    "criterio": "Anything unrelated to the indexed materials about Caja Huancayo deposit, account, savings, requirements, service conditions, penalties, closure rules, or official account-opening questions. This excludes geographic questions, credit decisions, personal financial advice, technical support, unrelated personal requests, jokes, and questions outside the documented savings products and contract terms.",
     "ejemplos": [
       "¿A qué hora cierra la agencia?",
       "Mi computadora no prende",
       "¿Cuándo me pagan la gratificación?",
       "Cuéntame un chiste",
       "Necesito ayuda con un reclamo",
-      "¿Mi cliente califica para un crédito?",
-      "Necesito el teléfono o la dirección de la sucursal más cercana."
+      "¿Cómo cambio mi contraseña del correo?",
+      "¿Dónde queda Huancayo?",
+      "¿Cuál es la capital del Perú?",
+      "¿Qué hora es?",
+      "¿Cuánto cuesta el dólar hoy?",
+      "Hola, ¿cómo estás?",
+      "¿Cuántos empleados tiene el banco?",
+      "Ayúdame con mi tarea de matemáticas",
+      "¿Puedes hablar en inglés?",
+      "¿Qué es el Bitcoin?",
+      "¿Me puedes indicar si aprobo un préstamo?",
+      "¿Cómo puedo cancelar una deuda?",
+      "¿Qué puedo hacer con una tarjeta de crédito?"
     ]
   }
 }

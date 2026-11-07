@@ -1,4 +1,19 @@
-"""Persistencia SQLite para conversaciones y mensajes del chat documental."""
+"""Paso 9: persistencia con SQLite (módulo sqlite3 de la librería estándar).
+
+¿Por qué no PostgreSQL como en el lab 04? Porque aquí basta un archivo, y `sqlite3` es SÍNCRONO: no depende del bucle
+de eventos de asyncio, así que no aparece el problema de ProactorEventLoop que tuvimos en Windows con psycopg.
+
+FastAPI ejecuta los endpoints `def` (no `async def`) en varios hilos; por eso una sola conexión protegida con un Lock.
+
+Estados de solicitudes (tabla de compatibilidad): RESPONDIDA | DERIVADA | PENDIENTE_ANALISTA → APROBADA | RECHAZADA
+  (La tabla solicitudes se conserva por compatibilidad con las pruebas de integración; en el flujo activo del asistente
+  de ahorro se usan conversaciones y mensajes.)
+
+Roles de mensaje: usuario | asistente | sistema
+  - usuario: consulta enviada desde la interfaz
+  - asistente: respuesta generada con RAG
+  - sistema: avisos internos del flujo
+"""
 from __future__ import annotations
 
 import json
@@ -15,10 +30,10 @@ CREATE TABLE IF NOT EXISTS conversaciones (
 CREATE TABLE IF NOT EXISTS mensajes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     conversacion_id INTEGER NOT NULL REFERENCES conversaciones(id),
-    creado_en REAL NOT NULL,
-    rol TEXT NOT NULL,
-    texto TEXT NOT NULL,
-    meta TEXT NOT NULL
+    creado_en       REAL NOT NULL,
+    rol             TEXT NOT NULL,      -- asesor | asistente | sistema
+    texto           TEXT NOT NULL,
+    meta            TEXT NOT NULL       -- JSON: ruta, citas, consulta reformulada, router…
 );
 CREATE INDEX IF NOT EXISTS ix_mensajes ON mensajes(conversacion_id, id);
 """
