@@ -5,7 +5,7 @@ services:
     build: .
     env_file: .env
     environment:
-      DB_PATH: /datos/solicitudes.db
+      DB_PATH: /datos/chat.db
       INDICE_PATH: /datos/indice.npz
     volumes:
       - datos:/datos                 # la base y el índice sobreviven a "docker compose down" (no a "down -v")

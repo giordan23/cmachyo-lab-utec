@@ -11,7 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent   # .../lab-06-riesgo-aprobacion
+BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
 WEB_DIR = BASE_DIR / "web"
 
@@ -61,7 +61,7 @@ class Settings:
         self.jev_timeout_s = _num("JEV_TIMEOUT_S", 15)
         self.router_min_confidence = _num("ROUTER_MIN_CONFIDENCE", 0.55)   # Jev: por debajo → fuera_de_alcance
         self.router_min_score = _num("ROUTER_MIN_SCORE", 0.30)             # router por embeddings (respaldo)
-        self.inyeccion_umbral = _num("INYECCION_UMBRAL", 0.8)              # Jev: probabilidad para marcar un mensaje
+        self.inyeccion_umbral = _num("INYECCION_UMBRAL", 0.8)              # Jev: probabilidad de manipulación
 
         # --- OpenAI --------------------------------------------------------------------------------------------
         self.openai_api_key = _txt("OPENAI_API_KEY")
@@ -72,15 +72,14 @@ class Settings:
         self.openai_max_output_tokens = int(_num("OPENAI_MAX_OUTPUT_TOKENS", 2000))
 
         # --- RAG -----------------------------------------------------------------------------------------------
-        self.rag_top_k = int(_num("RAG_TOP_K", 4))
-        self.rag_min_score = _num("RAG_MIN_SCORE", 0.25)
-        ## CAMBIAR PDF
+        self.rag_top_k = int(_num("RAG_TOP_K", 3))
+        defecto_score = 0.18 if self.embeddings_provider == "hash" else 0.25
+        self.rag_min_score = _num("RAG_MIN_SCORE", defecto_score)
         self.pdf_path = Path(_txt("PDF_PATH") or DATA_DIR / "Benchmarking.pdf")
         self.indice_path = Path(_txt("INDICE_PATH") or DATA_DIR / "indice.npz")
 
         # --- aplicación ----------------------------------------------------------------------------------------
-        self.db_path = Path(_txt("DB_PATH") or DATA_DIR / "solicitudes.db")
-        self.analista_token = _txt("ANALISTA_TOKEN")
+        self.db_path = Path(_txt("DB_PATH") or DATA_DIR / "chat.db")
 
         # --- costos (USD por millón de tokens) -----------------------------------------------------------------
         self.precio_jev_input = _num("PRECIO_JEV_INPUT", 0.042)

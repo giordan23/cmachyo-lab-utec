@@ -1,7 +1,7 @@
 """Paso 10: enmascarar datos personales ANTES de que salgan hacia Jev u OpenAI.
 
-En el formulario el DNI tenía su propio campo y era fácil no enviarlo. En un chat el asesor escribe lo que quiere:
-"mi cliente 40123456, Rosa, cel 987654321, ¿califica?". Por eso el enmascarado vive en los ADAPTADORES de salida
+En el chat el usuario puede escribir datos personales junto a su pregunta. Por eso el enmascarado vive en los
+ADAPTADORES de salida
 (JevRouter, OpenAILLM, OpenAIEmbedder): cualquier camino que llegue a un tercero pasa por aquí, aunque quien llama
 se olvide. En la base de datos interna se guarda el texto original (es el registro de la entidad).
 

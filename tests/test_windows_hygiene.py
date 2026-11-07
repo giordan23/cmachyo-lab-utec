@@ -1,4 +1,5 @@
 """Reglas que evitan los errores típicos de Windows. Si alguna falla, el código funcionaría en macOS/Linux y fallaría en Windows."""
+import json
 import re
 
 from app.config import BASE_DIR
@@ -29,10 +30,12 @@ def test_la_consola_no_usa_secuencias_ansi():
 
 
 def test_archivos_que_lee_docker_tienen_finales_LF():
-    """Si Git en Windows convierte a CRLF, un YAML o un script de shell dentro del contenedor (Linux) puede fallar."""
+    """Los scripts y YAML de contenedor usan LF; JSON es válido con LF o CRLF, pero debe parsear."""
     for p in [BASE_DIR / "Dockerfile", BASE_DIR / "docker-compose.yml", *BASE_DIR.glob("prometheus/*.yml"),
-              *BASE_DIR.glob("grafana/**/*.yml"), *BASE_DIR.glob("grafana/**/*.json")]:
+              *BASE_DIR.glob("grafana/**/*.yml")]:
         assert b"\r\n" not in p.read_bytes(), p.name
+    for p in BASE_DIR.glob("grafana/**/*.json"):
+        json.loads(p.read_text(encoding="utf-8"))
     assert "eol=lf" in (BASE_DIR / ".gitattributes").read_text(encoding="utf-8")
 
 

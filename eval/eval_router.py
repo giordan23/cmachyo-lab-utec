@@ -32,6 +32,9 @@ def main(argv: list[str]) -> None:
     proveedor = argv[argv.index("--proveedor") + 1] if "--proveedor" in argv else settings.router_provider
     if proveedor == "embeddings":
         settings.embeddings_provider = "openai"
+    elif proveedor == "hash":
+        settings.embeddings_provider = "hash"
+    settings.llm_provider = "mock"
     settings.router_provider = proveedor
     settings.validar()
     router = crear(proveedor, settings)

@@ -1,13 +1,4 @@
-"""API del proyecto de benchmarking bancario.
-
-    GET  /                             interfaz del chat benchmarking
-    POST /api/chat                     consulta al chat de benchmarking
-    POST /api/chat/nueva               nueva conversación
-    GET  /api/chat/{id}?desde=N        mensajes nuevos de una conversación
-    POST /api/solicitudes              consulta directa (compatibilidad)
-    GET  /api/solicitudes/{id}         detalle de una respuesta
-    GET  /metrics  ·  GET /health
-"""
+"""API de chat documental para consultas respaldadas por los PDF configurados."""
 from __future__ import annotations
 
 import asyncio
@@ -21,25 +12,22 @@ from fastapi.responses import FileResponse, Response, StreamingResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app import metricas
-from app.agente_riesgo import AgenteRiesgo
+from app.agente_documental import AgenteDocumental
 from app.config import WEB_DIR, Settings
 from app.conversacion import Chat
 from app.db import NoExiste, Repositorio
 from app.embeddings import HashEmbedder, OpenAIEmbedder, crear_embedder
 from app.llm import crear_llm
-from app.modelos import MensajeChat, Solicitud
+from app.modelos import MensajeChat
 from app.rag import RAG
 from app.router import crear_router
-
-MENSAJE_DERIVACION = ("Esta consulta no corresponde al benchmarking de Banco A vs Banco B. Puedes consultar tasas, "
-                      "comisiones, ITF o diferencias entre ambos bancos.")
 
 
 @dataclass
 class Servicios:
     settings: Settings
     router: object
-    agente: AgenteRiesgo
+    agente: AgenteDocumental
     repo: Repositorio
     chat: Chat | None = None
 
@@ -54,7 +42,7 @@ def _embedder_compatible(settings: Settings, preferido):
     try:
         with np.load(settings.indice_path) as z:
             nombre = str(z["embedder"])
-    except Exception:
+    except (OSError, ValueError, KeyError):
         return preferido
     if nombre == preferido.nombre:
         return preferido
@@ -70,18 +58,8 @@ def construir_servicios(settings: Settings | None = None) -> Servicios:
     settings.validar()
     embedder = _embedder_compatible(settings, crear_embedder(settings))
     rag = RAG(settings.indice_path, embedder, settings.rag_min_score, settings.rag_top_k)
-    return Servicios(settings, crear_router(settings, embedder), AgenteRiesgo(rag, crear_llm(settings)),
-                     Repositorio(settings.db_path))
-
-
-def vista_asesor(f: dict) -> dict:
-    """Vista simplificada para el chat de benchmarking."""
-    r = f["resultado"]
-    base = {"id": f["id"], "estado": f["estado"], "ruta": f["ruta"],
-            "router": {k: f["enrutamiento"].get(k) for k in ("proveedor", "confianza", "modelo", "bajo_umbral")}}
-    if f["estado"] == "RESPONDIDA":
-        return {**base, "respuesta": r["respuesta"], "citas": [x for x in r.get("reglas", []) if x["id"] in r.get("reglas_citadas", [])]}
-    return {**base, "respuesta": r.get("respuesta", "Consulta atendida en el contexto de benchmarking.")}
+    agente = AgenteDocumental(rag, crear_llm(settings))
+    return Servicios(settings, crear_router(settings, embedder), agente, Repositorio(settings.db_path))
 
 
 def create_app(servicios: Servicios | None = None) -> FastAPI:
@@ -89,16 +67,15 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
     async def lifespan(app: FastAPI):
         app.state.s = servicios or construir_servicios()
         metricas.inicializar_series()
-        metricas.COLA_PENDIENTE.set(app.state.s.repo.contar_pendientes())
         yield
 
-    app = FastAPI(title="Benchmarking bancario", lifespan=lifespan)
+    app = FastAPI(title="Consulta documental de benchmarking bancario", lifespan=lifespan)
 
     def svc(request: Request) -> Servicios:
         return request.app.state.s
 
     @app.get("/", include_in_schema=False)
-    def pagina_asesor():
+    def pagina_chat():
         return FileResponse(WEB_DIR / "index.html")
 
     @app.get("/health")
@@ -108,27 +85,6 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
     @app.get("/metrics", include_in_schema=False)
     def metrics():
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-    @app.post("/api/solicitudes")
-    def crear_solicitud(sol: Solicitud, s: Servicios = Depends(svc)):
-        ruta = s.router.enrutar(sol.pregunta)
-        if ruta.inyeccion is not None and ruta.inyeccion >= s.settings.inyeccion_umbral:
-            metricas.INYECCION.inc()
-        metricas.SOLICITUDES.labels(ruta.ruta).inc()
-        if ruta.ruta in {"consulta_producto", "consulta_benchmark"}:
-            estado, resultado = "RESPONDIDA", s.agente.responder_consulta(sol.pregunta)
-        else:
-            estado, resultado = "DERIVADA", {"respuesta": MENSAJE_DERIVACION}
-        id_ = s.repo.crear(estado, ruta.ruta, sol.model_dump(), ruta.como_dict(), resultado)
-        metricas.COLA_PENDIENTE.set(s.repo.contar_pendientes())
-        return vista_asesor(s.repo.obtener(id_))
-
-    @app.get("/api/solicitudes/{id_}")
-    def ver_solicitud(id_: int, s: Servicios = Depends(svc)):
-        try:
-            return vista_asesor(s.repo.obtener(id_))
-        except NoExiste:
-            raise HTTPException(404, f"No existe la solicitud {id_}") from None
 
     @app.post("/api/chat")
     def chat_enviar(m: MensajeChat, s: Servicios = Depends(svc)):
@@ -143,19 +99,21 @@ def create_app(servicios: Servicios | None = None) -> FastAPI:
             resultado = s.chat.enviar(m.conversacion_id, m.mensaje)
         except NoExiste:
             raise HTTPException(404, f"No existe la conversación {m.conversacion_id}") from None
-
         texto = resultado["mensajes"][1]["texto"]
 
         async def gen():
-            yield "data: " + json.dumps({"type": "start", "conversacion_id": resultado["conversacion_id"]}, ensure_ascii=False) + "\n\n"
+            yield "data: " + json.dumps({"type": "start", "conversacion_id": resultado["conversacion_id"]},
+                                        ensure_ascii=False) + "\n\n"
             partes = texto.split()
             if not partes:
                 partes = [""]
             for i, parte in enumerate(partes):
-                delta = (parte + (" " if i < len(partes) - 1 else ""))
+                delta = parte + (" " if i < len(partes) - 1 else "")
                 await asyncio.sleep(0.03)
-                yield "data: " + json.dumps({"type": "chunk", "conversacion_id": resultado["conversacion_id"], "delta": delta}, ensure_ascii=False) + "\n\n"
-            yield "data: " + json.dumps({"type": "done", "conversacion_id": resultado["conversacion_id"], "mensajes": resultado["mensajes"]}, ensure_ascii=False) + "\n\n"
+                yield "data: " + json.dumps({"type": "chunk", "conversacion_id": resultado["conversacion_id"],
+                                            "delta": delta}, ensure_ascii=False) + "\n\n"
+            yield "data: " + json.dumps({"type": "done", "conversacion_id": resultado["conversacion_id"],
+                                        "mensajes": resultado["mensajes"]}, ensure_ascii=False) + "\n\n"
 
         return StreamingResponse(gen(), media_type="text/event-stream")
 

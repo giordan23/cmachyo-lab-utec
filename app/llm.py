@@ -4,7 +4,7 @@
   devolver texto libre ni inventar campos: o devuelve un JSON que cumple el esquema, o falla y lo tratamos.
 - MockLLM: reglas fijas, sin red. NO es inteligencia; existe para que pytest corra sin clave ni costo.
 
-`store=False`: por defecto la Responses API guarda la conversación en OpenAI; con datos de clientes no queremos eso.
+`store=False`: desactiva el almacenamiento de las respuestas en el proveedor.
 """
 from __future__ import annotations
 
@@ -28,21 +28,10 @@ class RespuestaLLM:
     output_tokens: int = 0
 
 
-ESQUEMA_DICTAMEN = {
-    "type": "object", "additionalProperties": False,
-    "required": ["dictamen", "justificacion", "reglas_citadas", "condiciones"],
-    "properties": {
-        "dictamen": {"type": "string", "enum": ["APROBAR", "OBSERVAR", "RECHAZAR"]},
-        "justificacion": {"type": "string"},
-        "reglas_citadas": {"type": "array", "items": {"type": "string"}},
-        "condiciones": {"type": "array", "items": {"type": "string"}},
-    },
-}
-
 ESQUEMA_RESPUESTA = {
     "type": "object", "additionalProperties": False,
-    "required": ["respuesta", "reglas_citadas"],
-    "properties": {"respuesta": {"type": "string"}, "reglas_citadas": {"type": "array", "items": {"type": "string"}}},
+    "required": ["respuesta", "fuentes_citadas"],
+    "properties": {"respuesta": {"type": "string"}, "fuentes_citadas": {"type": "array", "items": {"type": "string"}}},
 }
 
 
@@ -100,32 +89,24 @@ class OpenAILLM:
 
 
 class MockLLM:
-    """Simulador determinista: arma la respuesta con los hallazgos y los artículos recibidos."""
+    """Simulador determinista que responde con el primer fragmento documental recibido."""
     nombre = "mock"
     modelo = "mock"
 
     def generar(self, instrucciones: str, contexto: dict, esquema: dict, nombre: str) -> RespuestaLLM:
-        reglas = contexto.get("reglas_del_manual", [])
+        fuentes = contexto.get("fuentes", [])
         if nombre == "reformulacion":
             # regla fija: un mensaje corto con historial se completa con la pregunta anterior del asesor
             actual = contexto["mensaje_actual"]
             previas = [m["texto"] for m in contexto.get("historial", []) if m["rol"] == "asesor"]
             consulta = f"{previas[-1]} {actual}" if previas and len(actual.split()) < 6 else actual
             return RespuestaLLM({"consulta": consulta}, self.modelo)
-        if nombre == "dictamen":
-            hallazgos = contexto.get("hallazgos_de_las_guardas", [])
-            sev = [h["severidad"] for h in hallazgos]
-            dictamen = "RECHAZAR" if "RECHAZAR" in sev else "OBSERVAR" if sev else "APROBAR"
-            c = contexto["calculos"]
-            texto = (f"Cuota estimada S/ {c['cuota']:,.2f} ({c['cuota_ingreso']:.1%} del ingreso), endeudamiento "
-                     f"{c['endeudamiento']:.1%}. " + (" ".join(h["mensaje"] + "." for h in hallazgos) or "Cumple las reglas revisadas."))
-            citas = list(dict.fromkeys([h["regla"] for h in hallazgos] + [r["id"] for r in reglas[:2]]))
-            condiciones = ["Presentar aval con calificación Normal o garantía"] if "OBSERVAR" in sev else []
-            return RespuestaLLM({"dictamen": dictamen, "justificacion": "[simulado] " + texto,
-                                 "reglas_citadas": citas, "condiciones": condiciones}, self.modelo)
-        top = reglas[0]
-        return RespuestaLLM({"respuesta": f"[simulado] Según el Art. {top['id']} ({top['titulo']}): {top['texto']}",
-                             "reglas_citadas": [top["id"]]}, self.modelo)
+        if not fuentes:
+            raise LLMError("No se puede generar una respuesta sin fuentes")
+        top = fuentes[0]
+        pagina = top.get("pagina", "?")
+        return RespuestaLLM({"respuesta": f"[simulado] Según la página {pagina}: {top['texto']}",
+                             "fuentes_citadas": [top["id"]]}, self.modelo)
 
 
 def crear_llm(settings):

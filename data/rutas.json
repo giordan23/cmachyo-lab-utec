@@ -1,26 +1,32 @@
 {
   "consulta_benchmark": {
-    "descripcion": "Pregunta de comparación entre Banco A y Banco B usando el documento de benchmarking.",
-    "criterio": "The user asks for a comparison between Bank A and Bank B based on the benchmarking document: passive operations, active operations, fees, commissions, rates, deposits, withdrawals, deposits and other financial conditions. This is factual analysis, not a client risk assessment.",
+    "descripcion": "Consulta sobre tasas, comisiones, depósitos y condiciones de Banco A y Banco B descritas en Benchmarking.pdf.",
+    "criterio": "Questions about facts in the supplied benchmarking PDF: savings and fixed-deposit rates, fees, commissions, ITF, banking conditions, or the document's illustrative credit-rate comparison. Do not make decisions about an individual customer's creditworthiness.",
     "ejemplos": [
       "¿Qué diferencia hay entre el ahorro en soles del Banco A y el Banco B?",
-      "Compara el costo de la tarjeta de crédito entre Banco A y Banco B.",
-      "¿Cuál banco tiene mejores condiciones para un depósito a plazo?",
-      "Analiza la diferencia de costos de comisiones entre Banco A y Banco B.",
-      "¿Qué tan favorable es el Banco B frente al Banco A en ahorro programado?",
-      "Compara las tasas de crédito activo entre Banco A y Banco B."
+      "Compara las tasas de ahorro clásico en dólares.",
+      "¿Cuál es la TEA del préstamo personal que aparece en el documento?",
+      "¿Cuánto cuesta retirar en un cajero Global Net?",
+      "¿Qué información da el PDF sobre la TCEA?",
+      "¿Qué banco ofrece mayor incentivo en ahorro programado?",
+      "¿Cuál es la comisión por transferir a otros bancos?",
+      "¿Qué rendimiento ofrece un depósito fijo según el plazo elegido?",
+      "¿Qué ocurre al retirar el dinero de un depósito antes del vencimiento?",
+      "¿Cuánto cobran por las operaciones hechas en un agente Kasnet?",
+      "¿Qué cifras ilustrativas aparecen para financiar un vehículo?"
     ]
   },
   "fuera_de_alcance": {
-    "descripcion": "Cualquier pregunta ajena al benchmarking bancario o a la comparación entre Banco A y Banco B.",
-    "criterio": "Anything unrelated to the benchmarking document or comparisons of Bank A vs Bank B: complaints, HR, IT support, opening hours, jokes or unrelated business questions.",
+    "descripcion": "Preguntas ajenas a la información contenida en los PDF.",
+    "criterio": "Questions unrelated to the supplied PDF, including complaints, HR, IT support, branch opening hours, or decisions and advice about an individual customer's credit application.",
     "ejemplos": [
       "¿A qué hora cierra la agencia?",
       "Mi computadora no prende",
       "¿Cuándo me pagan la gratificación?",
       "Cuéntame un chiste",
       "Necesito ayuda con un reclamo",
-      "¿Cómo cambio mi contraseña del correo?"
+      "¿Mi cliente califica para un crédito?",
+      "Necesito el teléfono o la dirección de la sucursal más cercana."
     ]
   }
 }

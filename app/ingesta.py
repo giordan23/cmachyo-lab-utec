@@ -1,14 +1,14 @@
-"""Paso 5: PDF → texto → fragmentos (un artículo por fragmento) → embeddings → data/indice.npz
+"""PDF → texto → fragmentos por página → embeddings → índice persistente.
 
 Uso:   python -m app.ingesta            (re-indexa siempre)
-       python -m app.ingesta --si-falta (solo si no hay índice o es de otro embedder; lo usa Docker al arrancar)
+       python -m app.ingesta --si-falta (reindexa si cambió el PDF o el embedder)
 
-¿Por qué un fragmento por ARTÍCULO y no cada N caracteres? Porque las reglas tienen límites naturales: si cortamos a
-mitad de un artículo, el LLM recibe "no puede superar el" sin el número. Cortar por estructura conserva el sentido y
-además da una cita exacta (artículo + página) para mostrar al analista.
+Los documentos de benchmarking no necesariamente tienen artículos numerados. Se dividen por página en fragmentos
+solapados para conservar el contexto y permitir citas verificables.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -19,71 +19,74 @@ from pypdf import PdfReader
 
 from app.config import ConfigError, Settings
 from app.embeddings import Embedder, crear_embedder
-from rules import politicas
-
-RX_ARTICULO = re.compile(r"^Artículo\s+(\d+(?:\.\d+)*)\s*-\s*(.+)$")
-RX_SECCION = re.compile(r"^(?P<id>\d+(?:\.\d+)*)\s*[.-]\s*(?P<titulo>[A-ZÁÉÍÓÚÜÑ].+)$")
 RX_RUIDO = re.compile(r"^(Página \d+|Capítulo \d+\. .*)$")   # pie de página y títulos de capítulo
-
-
-def _titulo_del_fragmento(linea: str) -> tuple[str, str] | None:
-    """Acepta el formato de reglas del laboratorio y títulos numéricos de textos arbitrarios."""
-    m = RX_ARTICULO.match(linea)
-    if m:
-        return m.group(1), m.group(2).strip()
-    m = RX_SECCION.match(linea)
-    if m:
-        return m.group("id"), m.group("titulo").strip()
-    return None
+MAX_FRAGMENTO = 800
+SOLAPAMIENTO = 120
 
 
 def extraer_fragmentos(pdf: Path) -> list[dict]:
-    """Devuelve [{id, titulo, pagina, texto}] en el orden del documento."""
+    """Devuelve fragmentos acotados con ids estables y página de origen."""
     fragmentos: list[dict] = []
-    actual = None
-    texto_total: list[str] = []
     for pagina, hoja in enumerate(PdfReader(str(pdf)).pages, 1):
+        lineas = []
         for linea in (hoja.extract_text() or "").splitlines():
             linea = " ".join(linea.strip().split())
-            if not linea or RX_RUIDO.match(linea) or linea.startswith(politicas.ENTIDAD):
+            if not linea or RX_RUIDO.match(linea):
                 continue
-            texto_total.append(linea)
-            titulo = _titulo_del_fragmento(linea)
-            if titulo:
-                _id, _titulo = titulo
-                actual = {"id": _id, "titulo": _titulo, "pagina": pagina, "texto": ""}
-                fragmentos.append(actual)
-            elif actual is not None:                          # las líneas antes del primer artículo son la portada
-                actual["texto"] = f"{actual['texto']} {linea}".strip()
-
-    if not fragmentos and texto_total:
-        fragmentos = [{"id": "1", "titulo": "Documento", "pagina": 1, "texto": " ".join(texto_total)}]
+            lineas.append(linea)
+        texto = " ".join(lineas)
+        inicio, numero = 0, 1
+        while inicio < len(texto):
+            fin = min(inicio + MAX_FRAGMENTO, len(texto))
+            if fin < len(texto):
+                limite = texto.rfind(" ", inicio, fin)
+                if limite > inicio:
+                    fin = limite
+            contenido = texto[inicio:fin].strip()
+            if contenido:
+                fragmentos.append({
+                    "id": f"p{pagina}-{numero}",
+                    "titulo": f"Página {pagina}, fragmento {numero}",
+                    "pagina": pagina,
+                    "texto": contenido,
+                })
+                numero += 1
+            if fin >= len(texto):
+                break
+            siguiente = max(fin - SOLAPAMIENTO, inicio + 1)
+            espacio = texto.find(" ", siguiente, fin)
+            inicio = espacio + 1 if espacio >= 0 else siguiente
     return fragmentos
 
 
 def texto_para_embedding(f: dict) -> str:
-    return f"Artículo {f['id']} - {f['titulo']}. {f['texto']}"
+    return f"{f['titulo']}. {f['texto']}"
 
 
 def construir_indice(settings: Settings, embedder: Embedder) -> dict:
     if not settings.pdf_path.exists():
-        raise FileNotFoundError(f"No existe {settings.pdf_path}. Genera el PDF: python -m rules.generar_pdf")
+        raise FileNotFoundError(f"No existe el PDF configurado: {settings.pdf_path}")
     fragmentos = extraer_fragmentos(settings.pdf_path)
     if not fragmentos:
         raise ValueError(f"No se encontró contenido indexable en {settings.pdf_path}")
     vectores = embedder.embed([texto_para_embedding(f) for f in fragmentos])
+    huella_pdf = hashlib.sha256(settings.pdf_path.read_bytes()).hexdigest()
     settings.indice_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(settings.indice_path, vectores=vectores, embedder=np.array(embedder.nombre),
-             fragmentos=np.array(json.dumps(fragmentos, ensure_ascii=False)))
+             fragmentos=np.array(json.dumps(fragmentos, ensure_ascii=False)), pdf_hash=np.array(huella_pdf))
     return {"fragmentos": len(fragmentos), "dim": int(vectores.shape[1]), "embedder": embedder.nombre,
             "paginas": sorted({f["pagina"] for f in fragmentos})}
 
 
 def indice_vigente(settings: Settings, embedder: Embedder) -> bool:
-    if not settings.indice_path.exists():
+    if not settings.indice_path.exists() or not settings.pdf_path.exists():
         return False
-    with np.load(settings.indice_path) as z:
-        return str(z["embedder"]) == embedder.nombre
+    try:
+        with np.load(settings.indice_path) as z:
+            return (str(z["embedder"]) == embedder.nombre
+                    and str(z["pdf_hash"]) == hashlib.sha256(settings.pdf_path.read_bytes()).hexdigest())
+    except (OSError, KeyError, ValueError):
+        return False
 
 
 def main(argv: list[str]) -> None:
@@ -95,7 +98,7 @@ def main(argv: list[str]) -> None:
         print(f"Índice vigente ({embedder.nombre}): no se re-indexa.")
         return
     r = construir_indice(settings, embedder)
-    print(f"Índice creado: {r['fragmentos']} artículos · {r['dim']} dimensiones · embedder {r['embedder']} · páginas {r['paginas']}")
+    print(f"Índice creado: {r['fragmentos']} fragmentos · {r['dim']} dimensiones · embedder {r['embedder']} · páginas {r['paginas']}")
 
 
 if __name__ == "__main__":

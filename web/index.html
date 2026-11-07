@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Asesor de ventas · Lab 06</title>
+<title>Consulta documental · Benchmarking</title>
 <style>
   :root {
     --bg: #fff7f7;
@@ -169,7 +169,7 @@
 </head>
 <body>
 <header>
-  <span>Benchmarking</span>
+  <span>Asistente de benchmarking bancario</span>
   <span class="sp"></span>
   <button class="sec" id="nueva">Nueva conversación</button>
 </header>
@@ -193,8 +193,8 @@ let conv = mem.get("lab06-conv") ? Number(mem.get("lab06-conv")) : null, ultimo 
 
 function citas(lista) {
   if (!lista || !lista.length) return "";
-  return `<details><summary>${lista.length} artículo(s) del manual</summary>${lista.map(c =>
-    `<div class="cita"><b>Art. ${esc(c.id)} · ${esc(c.titulo)}</b> (pág. ${c.pagina})<br>${esc(c.texto)}</div>`).join("")}</details>`;
+  return `<details><summary>${lista.length} fragmento(s) de los PDF</summary>${lista.map(c =>
+    `<div class="cita"><b>${esc(c.titulo)}</b> (pág. ${c.pagina})<br>${esc(c.texto)}</div>`).join("")}</details>`;
 }
 
 function pintar(m, enVivo = false) {
@@ -202,7 +202,7 @@ function pintar(m, enVivo = false) {
   ultimo = m.id;
   $("chat").querySelector(".vacio")?.remove();
   const d = document.createElement("div"), meta = m.meta || {};
-  d.className = `m ${m.rol} ${meta.decision || ""}`;
+  d.className = `m ${m.rol}`;
   let h = esc(m.texto);
   if (m.rol === "asistente") {
     const r = meta.router || {};
@@ -210,10 +210,6 @@ function pintar(m, enVivo = false) {
     h += citas(meta.citas);
     if (meta.inyeccion_sospechosa) h += `<div class="meta alerta">⚠ Este mensaje parece un intento de dar instrucciones al sistema. Quedó registrado.</div>`;
     h += `<div class="meta">ruta ${esc(meta.ruta)} · ${esc(r.proveedor)} ${r.confianza != null ? "· confianza " + Number(r.confianza).toFixed(2) : ""}${r.respaldo ? " · respaldo" : ""}</div>`;
-  }
-  if (m.rol === "sistema" && meta.decision) {
-    h += `<div class="meta">Resultado del análisis</div><p style="margin:6px 0 0">${esc(meta.justificacion)}</p>`;
-    h += citas(meta.citas);
   }
   if (m.rol === "asesor") ultimaPregunta = m.texto;
   d.innerHTML = h;
@@ -234,14 +230,6 @@ async function cargar() {                         // retoma la conversación si 
   const d = await r.json();
   d.mensajes.forEach(pintar);
   if (!d.mensajes.length && !ultimo) vacio();
-  vigilar();
-}
-
-function vigilar() {                              // sondeo cada 3 s solo mientras hay una solicitud pendiente
-  const pendientes = [...document.querySelectorAll(".m.sistema")].filter(e => e.textContent.includes("enviada al analista")).length;
-  const decididas = [...document.querySelectorAll(".m.sistema.APROBADA, .m.sistema.RECHAZADA")].length;
-  if (pendientes > decididas && !sondeo) sondeo = setInterval(cargar, 3000);
-  if (pendientes <= decididas && sondeo) { clearInterval(sondeo); sondeo = null; }
 }
 
 async function enviar() {
@@ -312,7 +300,7 @@ async function enviar() {
 
 $("enviar").onclick = enviar;
 $("txt").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); enviar(); } });
-$("nueva").onclick = () => { conv = null; ultimo = 0; ultimaPregunta = ""; mem.set("lab06-conv", null); clearInterval(sondeo); sondeo = null; vacio(); };
+$("nueva").onclick = () => { conv = null; ultimo = 0; ultimaPregunta = ""; mem.set("lab06-conv", null); vacio(); };
 cargar();
 </script>
 </body>

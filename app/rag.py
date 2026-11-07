@@ -1,7 +1,6 @@
-"""Paso 5: búsqueda en el índice del PDF (la "R" de RAG).
+"""Búsqueda en el índice de los PDF (la recuperación de RAG).
 
-El índice cabe en memoria (16 artículos): una matriz NumPy y un producto punto bastan. Con miles de documentos usarías
-una base vectorial (pgvector, Qdrant…) como en el lab 04; la interfaz `buscar()` no cambiaría.
+El índice se mantiene en memoria como una matriz NumPy; cada fragmento conserva la página de su documento de origen.
 """
 from __future__ import annotations
 
@@ -35,7 +34,7 @@ class Fragmento:
     score: float = 0.0
 
     def cita(self) -> str:
-        return f"Art. {self.id} ({self.titulo}, pág. {self.pagina})"
+        return f"{self.titulo} (pág. {self.pagina})"
 
 
 class RAG:
@@ -52,7 +51,6 @@ class RAG:
         self.embedder = embedder
         self.min_score = min_score
         self.top_k = top_k
-        self._por_id = {f.id: f for f in self.fragmentos}
 
     def buscar(self, consulta: str, k: int | None = None) -> list[Fragmento]:
         q = self.embedder.embed([consulta])[0]
@@ -67,8 +65,3 @@ class RAG:
         if not res:
             metricas.RAG_SIN_CONTEXTO.inc()
         return res
-
-    def por_id(self, articulo_id: str) -> Fragmento | None:
-        """Recuperación EXACTA por artículo: la usa el agente para traer el texto de las reglas que activó una guarda."""
-        f = self._por_id.get(articulo_id)
-        return Fragmento(**{**vars(f), "score": 1.0}) if f else None

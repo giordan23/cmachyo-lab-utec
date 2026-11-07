@@ -4,9 +4,8 @@ ENV PYTHONUNBUFFERED=1 PYTHONUTF8=1
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
-COPY rules ./rules
 COPY web ./web
-COPY data/rutas.json data/politicas_riesgo.pdf ./data/
+COPY data/rutas.json data/Benchmarking.pdf ./data/
 EXPOSE 8000
 # Al arrancar: indexa el PDF solo si falta el índice (o si cambiaste de embedder) y levanta la API.
 CMD ["sh", "-c", "python -m app.ingesta --si-falta && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

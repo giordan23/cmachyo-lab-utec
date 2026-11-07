@@ -8,10 +8,8 @@ from app import metricas
 from app.db import NoExiste
 
 HISTORIAL_MAX = 6          # mensajes previos que recibe el LLM: más contexto = más costo y más ruido
-BENCHMARK_SOLO = ("Este proyecto está orientado a benchmarking y comparación entre Banco A y Banco B. "
-                  "No incluye evaluación de riesgo de clientes ni escalado a un analista de riesgo.")
 DERIVAR = ("Esta consulta no corresponde a benchmarking"
-           "Puedes preguntar sobre tasas, comisiones, ITF, depósitos o diferencias entre ambos bancos.")
+           ". Puedes preguntar sobre tasas, comisiones, ITF, depósitos o diferencias entre ambos bancos.")
 
 
 class Chat:
@@ -43,13 +41,11 @@ class Chat:
             metricas.INYECCION.inc()
         meta = {"ruta": ruta.ruta, "router": ruta.como_dict(), "inyeccion_sospechosa": sospechoso, "accion": None}
 
-        if ruta.ruta in {"consulta_producto", "consulta_benchmark"}:
+        if ruta.ruta == "consulta_benchmark":
             r = self.agente.responder_consulta(texto, previos)
-            meta.update(consulta=r["consulta"], llm_error=r["llm_error"],
-                        citas=[x for x in r["reglas"] if x["id"] in r["reglas_citadas"]])
+            meta.update(consulta=r["consulta"], error=r["error"],
+                        citas=[x for x in r["fuentes"] if x["id"] in r["fuentes_citadas"]])
             respuesta = r["respuesta"]
-        elif ruta.ruta == "evaluacion_credito":
-            respuesta = BENCHMARK_SOLO
         else:
             respuesta = DERIVAR
         return {"conversacion_id": conversacion_id,
